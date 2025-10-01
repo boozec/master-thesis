@@ -1,0 +1,92 @@
+\chapter{Implementation and Tests}
+
+This chapter provides a practical overview of the proposed file corruption detection system by presenting a real implementation developed specifically for this work. The implementation consists of a standalone binary application built around the \texttt{mt-rs} library, employing the BLAKE3 cryptographic hash function, the Raft consensus algorithm, and the Reed-Solomon codes.
+
+Rather than including extensive code listings, which would not significantly contribute to the goals of this thesis, the discussion highlights selected code snippets that illustrate how the individual components operate together in a coherent system. Finally, the chapter presents a series of benchmarks designed to evaluate the behaviour of the implementation under various scenarios, such as node failures, varying numbers of agents, and datasets of different sizes and file counts.
+
+\section{Files in a Raft Cluster}
+
+As discussed in Section \ref{sec:raft-cluster-for-file-uploads}, the system is built upon a Raft cluster integrated with a storage mechanism based on Reed-Solomon codes. To study this integration, a Go\footnote{\url{https://go.dev/}} application was implemented, reconstructing a Cubbit-like infrastructure by layering a Raft cluster on top of Reed–Solomon redundancy. Go was chosen for its gentle learning curve and widespread adoption, including by companies such as Cubbit. Following the common project layout recommended for Go\cite{go-modules-layout} all the developed services are organized within a single module. This structure avoids redundancy, such as duplicating the service message definitions described later. Each service is maintained separately as a distinct binary under the \texttt{cmd/} folder, in accordance with Go best practices.
+
+
+
+To investigate communication patterns between the system components, two service APIs were implemented: a REST API, widely used for web services, and gRPC\footnote{\url{https://grpc.io/}}, developed by Google and based on Protobuf, which allows precise definition of the message types transmitted over the network.
+
+\begin{listing}[H]
+\caption{Protobuf definitions for the \texttt{Agent} service, used for communication between Gateways and Agents as well as among Agents themselves.}
+\label{code:protobuf-for-agent}
+\begin{minted}[linenos,fontsize=\footnotesize]{protobuf}
+service Agent {
+    rpc SendShard(ShardRequest) returns (ShardResponse) {}
+    rpc GetShard(ShardGetRequest) returns (ShardGetResponse) {}
+    rpc AckShard(ShardAckRequest) returns (ShardAckResponse) {}
+    rpc GetRootHash(RootHashRequest) returns (RootHashResponse) {}
+    rpc JoinRaft(JoinRequest) returns (JoinResponse) {}
+}
+
+message ShardRequest {
+    string filename = 1;
+    int64 index = 2;
+    bytes data = 3;
+}
+
+message ShardGetRequest {
+    string filename = 1;
+    int64 index = 2;
+}
+
+message ShardAckRequest {
+    string filename = 1;
+    int64 index = 2;
+    bytes roots = 3;
+}
+
+message ShardResponse {
+    string filename = 1;
+    bytes salt = 2;
+}
+
+message ShardGetResponse { bytes data = 1; }
+
+message ShardAckResponse { bool status = 1; }
+
+message RootHashRequest { bytes folder = 1; }
+
+message RootHashResponse { bytes hash = 1; }
+
+// ...
+\end{minted}
+\end{listing}
+
+Listing \ref{code:protobuf-for-agent} illustrates the Protobuf definitions used by the agents, including messages for both gateway-agent and agent-agent interactions.
+
+The particular feature of gRPC is that the Protobuf file can be directly compiled into Go code using a simple command line, as shown in Listing \ref{code:protobuf-protoc}.
+
+\begin{listing}
+\caption{Protobuf compiler command that generates Go code from the service definition located at \texttt{<path>.proto}.}
+\label{code:protobuf-protoc}
+\begin{minted}{shell}
+protoc --go_out=. \
+        --go_opt=paths=source_relative \
+        --go-grpc_out=. \
+        --go-grpc_opt=paths=source_relative \
+        <path>.proto
+\end{minted}
+\end{listing}
+
+This command generates two Go files: 
+\begin{itemize}
+    \item \texttt{<path>.pb.go}, which contains the standard Protobuf message definitions and serialization code.
+    \item \texttt{<path>\_grpc.pb.go}, which contains the gRPC client and server stubs necessary to implement the service endpoints in Go. The methods defined in Listing \ref{code:protobuf-for-agent} are represented as an interface in this file, and they must be implemented to enable communication between a Gateway and the Agent service, or among Agents themselves.
+\end{itemize}
+
+These generated files form the foundation for both Gateway-to-Agent and inter-agent communication in the system.
+
+\subsection{Gateway service} 
+
+The Gateway serves as the interface available to the user, as illustrated in the step 1 on Figure \ref{fig:sequence-diagram-upload-file}. It is exposed via a REST API and manages file uploads and downloads by splitting files into $n+k$ shards and distributing them across the agents. The REST interface is intentionally minimal in this prototype, offering only two endpoints: one for uploading and one for downloading files. The upload endpoint requires the local file path and the desired filename, while the download endpoint requires only the filename.
+
+
+\subsection{Agent service}
+
+Each agent is responsible for storing its assigned shards locally and participates as a node in the Raft cluster. The total number of agents corresponds to the Reed–Solomon configuration ($n+k$). Communication between the Gateway and agents is implemented using gRPC, which allows efficient binary data transfer and a rich set of commands. Inter-agent communication also uses gRPC, supporting operations such as sending file acknowledgments, managing cluster membership requests, and retrieving the current Merkle root hash for a given folder.
