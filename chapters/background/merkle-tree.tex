@@ -1,0 +1,154 @@
+\section{Merkle Trees}\label{section:merkle-trees}
+
+Merkle trees \cite{merkle1979} are a fundamental data structure first introduced by R. Merkle in his PhD dissertation. This section presents the theoretical foundations of Merkle trees, their construction, their practical applications, and the rationale for the implementation chosen in this thesis.
+
+A Merkle tree is a binary tree $T$ of height $H$ with $2^H$ leaves and $2^H - 1$ internal nodes.  
+Each leaf stores the cryptographic hash of the underlying data, rather than the raw data itself. The same cryptographic hash function is applied recursively at internal nodes, which store the hash of the concatenation of their two children. For a more detailed discussion of collision resistance in cryptographic hash functions, see \cite{damgaard1987collision}.
+
+Formally, given two child nodes $n_{\text{left}}$ and $n_{\text{right}}$, their parent node is defined as:
+\begin{equation}
+\label{equation:nparent}
+    n_{\text{parent}} = f(n_{\text{left}} \, || \, n_{\text{right}})
+\end{equation}
+where $||$ denotes bit-string concatenation and $f$ is a cryptographic hash function.
+
+Consider now a Merkle tree of height $H > 2$. A leaf node is indexed by $\phi \in \{0, \ldots, 2^H-1\}$. A node at height $h$ and position $j$ (counting from left to right) is denoted as $y_h[j]$, where $h = 0, \ldots, H$ and $j = 0, \ldots, 2^{H-h}-1$.  
+Given a cryptographic hash function $f: \{0,1\}^\star \mapsto \{0,1\}^n$, the recursive definition of an internal node is:
+\begin{equation}
+    y_h[j] = f\big(y_{h-1}[2j] \, || \, y_{h-1}[2j+1]\big).
+\end{equation}
+
+The root node of the tree, known as the \emph{Merkle root}, serves as a compact commitment to all data contained in the leaves. Because hashes propagate upwards, even a single-bit modification in any leaf causes a change in the root hash. This property makes Merkle trees powerful tools for integrity verification in large, distributed datasets.
+
+
+\subsection{Merkle Proofs}
+
+One of the most powerful features of Merkle trees is the ability to prove that a given piece of data is part of a larger set, without revealing or recomputing the entire dataset.  
+Given a Merkle tree leaf, one can reconstruct the root by traversing the path to the root and successively combining the node with its siblings.  
+
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  leaf/.style={draw, circle, minimum size=7mm},
+  hash/.style={draw, rectangle, rounded corners=2pt,
+  highlight/.style={fill=yellow!40, thick},
+  red/.style={draw=red, thick},
+  minimum width=20mm, minimum height=12mm, 
+  sibling distance=3cm,
+  align=center},
+  node distance=12mm
+]
+% leaves
+\node[leaf,] (data0) {$data_0$};
+\node[leaf, red, right=of data0] (data1) {$data_1$};
+\node[leaf, right=of data1] (data2) {$data_2$};
+\node[leaf, right=of data2] (data3) {$data_3$};
+% leaf-hash nodes with two lines (inline math for each line)
+\node[hash, red, above=0.5cm of data0] (n0) {\(\mathbf{node_0}\)\\ \(f(data_0)\)};
+\node[hash, above=0.5cm of data1] (n1) {\(\mathbf{node_1}\)\\ \(f(data_1)\)};
+\node[hash, above=0.5cm of data2] (n2) {\(\mathbf{node_2}\)\\ \(f(data_2)\)};
+\node[hash, above=0.5cm of data3] (n3) {\(\mathbf{node_3}\)\\ \(f(data_3)\)};
+% parents
+\node[hash, above=of $(n0)!0.5!(n1)$] (p01) {\(\mathbf{node_{01}}\)\\ \(f(node_0\Vert node_1)\)};
+\node[hash, red, above=of $(n2)!0.5!(n3)$] (p23) {\(\mathbf{node_{23}}\)\\ \(f(node_2\Vert node_3)\)};
+% root
+\node[hash, above=of $(p01)!0.5!(p23)$] (root) {\(\textbf{root}\)\\ \(f(node_{01}\Vert node_{23})\)};
+% edges with arrows
+\foreach \a/\b in {data0/n0, data1/n1, data2/n2, data3/n3, n0/p01, n1/p01, n2/p23, n3/p23, p01/root, p23/root}
+  \draw[->] (\a) -- (\b);
+\end{tikzpicture}
+\caption{Merkle tree authentication path for $data_1$.  
+Leaves are hashed as $node_i = f(data_i)$, and internal nodes are computed as $f(node_{\text{left}} || node_{\text{right}})$ (Equation~\ref{equation:nparent}).  
+The proof requires only the sibling nodes $\{node_0, node_{23}\}$ to recompute the root.}
+\label{proof-path-l1}
+\end{figure}
+
+
+For each height $h < H$, we define $Auth_h$ to be the value of the sibling node along the path from the leaf to the root. The set of all such siblings $\{Auth_h\}_{h=0}^{H-1}$ is called the \emph{authentication path}. With this path, anyone can recompute the root and verify inclusion by comparing against the published Merkle root.
+
+For instance, Figure \ref{proof-path-l1} shows the authentication path corresponding to the second leaf.
+
+This property, known as a \emph{Merkle proof}, enables efficient verification of data integrity. In a naive implementation, the entire Merkle tree is stored in memory. In such a case, generating a proof for a leaf - as illustrated in Algorithm \ref{algo:merkle-proof-generation} - involves traversing only the path from the leaf to the root. This reduces proof generation from a potentially linear scan of all data ($O(n)$) to a logarithmic traversal of the tree ($O(\log n)$).
+
+\vspace{1em}
+\begin{algorithm}[H]
+\SetAlgoLined
+\DontPrintSemicolon
+\KwIn{Leaf index $i$, full tree levels $L_0, L_1, \dots, L_H$}
+\KwOut{Merkle proof $\pi$ for leaf $l_i$ (or \texttt{None} if $i$ invalid)}
+\BlankLine
+$\pi \gets \emptyset$\;
+$current \gets i$\;
+\ForEach{level $\in \{L_0, \dots, L_{H-1}\}$}{
+    $sibling\_index \gets \min(current \oplus 1, |level| - 1)$\;
+    $sibling \gets level[sibling\_index]$\;
+    $position \gets$ \texttt{Left} if $sibling\_index < current$, else \texttt{Right}\;
+    append $(sibling.hash, position)$ to $\pi$\;
+    $current \gets \lfloor current / 2 \rfloor$
+}
+\Return{$\pi$}\;
+\caption{Merkle Proof Generation}
+\label{algo:merkle-proof-generation}
+\end{algorithm}
+
+\vspace{1em}
+
+Merkle Proof Verification algorithm for a proof $\pi$ is illustrated in Algorithm \ref{algo:merkle-proof-verification}.
+
+ \vspace{1em}
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\DontPrintSemicolon
+\KwIn{Data $d$, proof $\pi$, expected root $R$, hash function $f$}
+\KwOut{\texttt{true} if valid, \texttt{false} otherwise}
+\BlankLine
+$h \gets f(d)$\;
+\ForEach{ $(sibling, position)$ in $\pi$ }{
+    \eIf{$position = \text{Left}$}{
+        $h \gets f(sibling || h)$\;
+    }{
+        $h \gets f(h || sibling)$\;
+    }
+}
+\Return{$h = R$}\;
+\caption{Merkle Proof Verification}
+\label{algo:merkle-proof-verification}
+\end{algorithm}
+
+\paragraph{Complexity Analysis}
+\begin{itemize}
+    \item \textbf{Proof generation:} $O(\log n)$, because only the sibling nodes along the path from leaf to root are collected.  
+    \item \textbf{Proof verification:} $O(\log n)$, as each step requires a single hash operation per tree level.  
+    \item \textbf{Memory:} $O(n)$ to store the full tree in memory, which allows logarithmic-time proof generation.
+\end{itemize}
+
+This approach ensures that Merkle proofs remain efficient even for large datasets, while keeping the implementation simple and compatible with our folder-level integrity checks across a Raft-coordinated cluster.
+
+
+\subsection{Applications}
+
+Merkle trees are widely used in distributed systems to ensure data integrity:
+\begin{itemize}
+    \item \textbf{Blockchains}: Bitcoin \cite{bitcoinwiki-merkle}, Ethereum \cite{ethereum-patricia}, and other systems use Merkle roots to verify transactions efficiently.
+    \item \textbf{Version control systems}: Git stores commits as Merkle trees, ensuring history integrity.
+    \item \textbf{Distributed storage}: Systems such as IPFS \cite{ipfs-merkle-dag} and Amazon DynamoDB \cite{decandia2007dynamo} use Merkle trees for consistency checks and conflict resolution.
+\end{itemize}
+
+\subsection{Alternative Implementations}
+
+In the literature, several advanced variants of Merkle trees exist, such as XMSS (eXtended Merkle Signature Scheme) \cite{buchmann2011xmss} and the BDS (Buchmann-Dahmen-Szydlo) traversal algorithm \cite{buchmann2008merkle}. These schemes were developed in the context of \emph{post-quantum cryptography} and digital signatures. XMSS is standardized by the IETF (RFC 8391) and provides strong security guarantees by organizing one-time signatures (OTS) under a large Merkle tree, where the root of the tree serves as the public key.  
+
+In XMSS, to sign a message $i$, the authentication path of the $i$-th leaf is needed. In a native way, recomputing this path would require rebuilding large parts of the tree, which becomes impractical when the tree contains millions of leaves. To solve this, the BDS traversal algorithm was introduced: it incrementally maintains and updates the authentication path in $O(h)$ time and $O(h)$ space (where $h = \log_2(n)$ is the tree height). This makes XMSS practical for very large trees.
+
+In our case, however, the scenario is fundamentally different. We are not designing a post-quantum signature scheme but a corruption detection system for folders in a distributed storage cluster. The size of our Merkle trees is modest: typically on the order of tens of leaves per folder. For trees of this size:
+\begin{itemize}
+    \item Proofs can be recomputed directly, without significant computational overhead.
+    \item The space-time optimizations of BDS provide no practical benefit.
+    \item The additional complexity of XMSS and BDS would introduce unnecessary implementation overhead.
+\end{itemize}
+
+For this reason, this thesis opted for a \emph{simple} Merkle tree implementation, applied independently at the folder and sub-folder level. This keeps the system lightweight, efficient, and easy to integrate with a consensus mechanism. It also avoids the pitfalls of managing very large Merkle trees (as in XMSS) or the stateful requirements of post-quantum signature schemes, which are irrelevant in our use case.
+
