@@ -6,14 +6,14 @@ Rather than including extensive code listings, which would not significantly con
 
 \section{Files in a Raft Cluster}
 
-As discussed in Section \ref{sec:raft-cluster-for-file-uploads}, the system is built upon a Raft cluster integrated with a storage mechanism based on Reed-Solomon codes. To study this integration, a Go\footnote{\url{https://go.dev/}} application was implemented, reconstructing a Cubbit-like infrastructure by layering a Raft cluster on top of Reed–Solomon redundancy. Go was chosen for its gentle learning curve and widespread adoption, including by companies such as Cubbit. Following the common project layout recommended for Go\cite{go-modules-layout} all the developed services are organized within a single module. This structure avoids redundancy, such as duplicating the service message definitions described later. Each service is maintained separately as a distinct binary under the \texttt{cmd/} folder, in accordance with Go best practices.
+As discussed in Section \ref{sec:raft-cluster-for-file-uploads}, the system is built upon a Raft cluster integrated with a storage mechanism based on Reed-Solomon codes. To study this integration, a Go\footnote{\url{https://go.dev/}} application was implemented, reconstructing a Cubbit-like infrastructure by layering a Raft cluster on top of Reed-Solomon redundancy. Go was chosen for its gentle learning curve and widespread adoption, including by companies such as Cubbit. Following the common project layout recommended for Go\cite{go-modules-layout} all the developed services are organized within a single module. This structure avoids redundancy, such as duplicating the service message definitions described later. Each service is maintained separately as a distinct binary under the \texttt{cmd/} folder, in accordance with Go best practices.
 
 
 
 To investigate communication patterns between the system components, two service APIs were implemented: a REST API, widely used for web services, and gRPC\footnote{\url{https://grpc.io/}}, developed by Google and based on Protobuf, which allows precise definition of the message types transmitted over the network.
 
 \begin{listing}[H]
-\caption{Protobuf definitions for the \texttt{Agent} service, used for communication between Gateways and Agents as well as among Agents themselves.}
+\caption{Protobuf definitions for the \texttt{Agent} service, used for communication between gateways and agents, as well as among agents themselves.}
 \label{code:protobuf-for-agent}
 \begin{minted}[linenos,fontsize=\footnotesize]{protobuf}
 service Agent {
@@ -60,7 +60,7 @@ message RootHashResponse { bytes hash = 1; }
 
 Listing \ref{code:protobuf-for-agent} illustrates the Protobuf definitions used by the agents, including messages for both gateway-agent and agent-agent interactions.
 
-The particular feature of gRPC is that the Protobuf file can be directly compiled into Go code using a simple command line, as shown in Listing \ref{code:protobuf-protoc}.
+The distinctive feature of gRPC is that the Protobuf file can be directly compiled into Go code using a simple CLI, as shown in Listing \ref{code:protobuf-protoc}.
 
 \begin{listing}
 \caption{Protobuf compiler command that generates Go code from the service definition located at \texttt{<path>.proto}.}
@@ -77,16 +77,163 @@ protoc --go_out=. \
 This command generates two Go files: 
 \begin{itemize}
     \item \texttt{<path>.pb.go}, which contains the standard Protobuf message definitions and serialization code.
-    \item \texttt{<path>\_grpc.pb.go}, which contains the gRPC client and server stubs necessary to implement the service endpoints in Go. The methods defined in Listing \ref{code:protobuf-for-agent} are represented as an interface in this file, and they must be implemented to enable communication between a Gateway and the Agent service, or among Agents themselves.
+    \item \texttt{<path>\_grpc.pb.go}, which contains the gRPC client and server stubs necessary to implement the service endpoints in Go. The methods defined in Listing \ref{code:protobuf-for-agent} are represented as an interface in this file, and they must be implemented to enable communication between a gateway and the agent service, or among agents themselves.
 \end{itemize}
 
-These generated files form the foundation for both Gateway-to-Agent and inter-agent communication in the system.
+Together, these files constitute the foundation for both gateway-to-agent and inter-agent communication in the system.
 
 \subsection{Gateway service} 
 
-The Gateway serves as the interface available to the user, as illustrated in the step 1 on Figure \ref{fig:sequence-diagram-upload-file}. It is exposed via a REST API and manages file uploads and downloads by splitting files into $n+k$ shards and distributing them across the agents. The REST interface is intentionally minimal in this prototype, offering only two endpoints: one for uploading and one for downloading files. The upload endpoint requires the local file path and the desired filename, while the download endpoint requires only the filename.
+The Gateway acts as the entry point for the user, as illustrated in step 1 of Figure \ref{fig:sequence-diagram-upload-file}. It is exposed via a REST API and manages file uploads and downloads by splitting files into $n+k$ shards using the Reed-Solomon algorithm and distributing them across the agents. The REST interface is intentionally minimal in this prototype, offering only two endpoints: one for uploading and one for downloading files. The upload endpoint requires the local file path and the desired filename, while the download endpoint requires only the filename.
 
+Go provides a straightforward mechanism to instantiate a web server, as shown in Listing \ref{code:mux-gateway}. The \texttt{mux} server maps REST paths to functions, referred to as handlers. 
+
+\begin{listing}\caption{Instantiation of a simple web server in Go.}
+
+\label{code:mux-gateway}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+mux := &http.ServeMux{}
+mux.HandleFunc("/upload", UploadHandler)
+mux.HandleFunc("/download/{filename}", DownloadHandler)
+http.ListenAndServe("<url>", mux);
+\end{minted}
+\end{listing}
+
+
+\paragraph{Upload handler}
+
+A partial implementation of the upload handler is shown in Listing \ref{code:upload-handler}.
+
+\begin{listing}
+\caption{Upload handler: Gateway orchestrates file encryption, Reed-Solomon shard creation, and transmission to agents via the \texttt{rpc.SendShard} wrapper.}
+\label{code:upload-handler}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func UploadHandler(w http.ResponseWriter, r *http.Request) {
+    // Open the file in byte format.
+    // Generate a key and encrypt the file with it.
+    // Encrypt the local file using a random key.
+    ciphertext, err := cryptography.Enc(file, key)
+    
+    // Create N+K shards from the encrypted file ([][]byte).
+    shardBytes, err := reedSolomon.Create(N, K, ciphertext)
+
+    // Generate a "good" salt to extend the filename.
+    // Send each shard to a different agent.
+    for i, shard := range shardBytes {
+        resp, err := rpc.SendShard(
+            cfg.Agents[i], filename+salt, i, shard,
+        )
+
+        if err != nil {
+            // Handle error
+        }
+    }
+    
+    // Build a JSON response for the client.
+    jsonResponse, _ := json.Marshal(/* ... */)
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(jsonResponse)
+}
+
+\end{minted}
+\end{listing}
+
+Some clarifications on the code in Listing \ref{code:upload-handler} are in order.
+The details of file encryption are omitted, since they are not central to the current discussion. Similarly, the internal implementation of Reed-Solomon encoding is abstracted: the key point is that the function \texttt{reedSolomon.Create} returns the $n+k$ shards from the encrypted file. Error handling is also simplified for readability, and the specific contents of the \texttt{jsonResponse} are not reported, as they are not relevant to the design.
+
+The critical part lies in lines 14-16, where the \texttt{SendShard} method from the custom \texttt{rpc} module is invoked. This method serves as a wrapper around the generated gRPC client code contained in \texttt{<path>\_grpc.pb.go}. Its role is to establish the connection, transmit the shard, and delegate the call to the gRPC stub. The implementation of this wrapper is presented in Listing \ref{code:rpc-send-shard}.
+
+However, this implementation alone is not sufficient. A corresponding gRPC server must also be defined to handle the data transmitted in lines 27-31. As explained earlier, the code in \texttt{<path>\_grpc.pb.go} only provides the interface definition; the concrete server-side logic needs to be implemented in order to process the incoming shard data. This aspect will be discussed in detail in the next section.
+
+\begin{listing}
+\caption{\texttt{SendShard} wrapper: intermediate function that establishes a gRPC connection to the target Agent, forwards the shard data to the generated gRPC client stub in \texttt{<path>\_grpc.pb.go}, and returns the response.}
+\label{code:rpc-send-shard}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func SendShard(agent, filename string,
+    index int, 
+    data []byte) (*pb.ShardResponse, error) {
+    dialCtx, dialCancel := 
+        context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer dialCancel()
+
+    conn, err := grpc.DialContext(dialCtx, agent,
+            grpc.WithTransportCredentials(insecure.NewCredentials()),
+            grpc.WithBlock())
+
+    if err != nil {
+        // Handle
+    
+    }
+    defer conn.Close()
+
+    
+    // Instantiate the gRPC client for the Agent service.
+    c := pb.NewAgentClient(conn) 
+
+    ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+    defer cancel()
+
+    
+    // Call the SendShard procedure for the i-th shard of the file.
+    resp, err := c.SendShard(ctx, &pb.ShardRequest{
+        Filename: filename,
+        Index:    int64(index),
+        Data:     data,
+    })
+
+    if err != nil {
+        // Handle
+    }
+
+    return resp, nil
+}
+\end{minted}
+\end{listing}
+
+\paragraph{Download handler}
+
+Equally important, though similar in structure to the previously presented \texttt{UploadHandler}, is the \texttt{DownloadHandler}. While not strictly necessary for system testing, it is useful in both real-world scenarios and tests, for example to verify that a downloaded file is not corrupted. A partial implementation is shown in Listing \ref{code:download-handler}.
+
+\begin{listing}
+\caption{Download handler: logic that retrieves all shards of a file via the \texttt{rpc.GetAllShards} wrapper, reconstructs the file using Reed-Solomon, decrypts it, and returns it as a download to the user.}
+\label{code:download-handler}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+    // Retrieve the salt for a given filename 
+    // to reconstruct the exact file saved on agents.
+    endFile := getEndFile(filename, salt)
+
+    // Retrieve all shards from agents
+    shards, _ := rpc.GetAllShards(endFile)
+
+    // Reconstruct the entire file using Reed-Solomon,
+    // and store it at endFile path
+    err := reedSolomon.Reconstruct(cfg.N, cfg.K, endFile, shards)
+    if err != nil {
+        // Handle error
+    }
+
+    // Decrypt the reconstructed file and store it as filename
+
+    // Return the plaintext file as an attachment
+    w.Header()
+        .Set("Content-Disposition",
+            fmt.Sprintf("attachment; filename=%s", filename),
+        )
+    content, err := ioutil.ReadFile(filename)
+
+    // Handle possible errors and clear temporary files
+
+    w.Write(content)
+}
+\end{minted}
+\end{listing}
+
+As with the \texttt{UploadHandler}, certain implementation details are omitted for clarity, such as how the correct salt is determined for each file and the internal workings of the Reed-Solomon reconstruction algorithm. The \texttt{rpc.GetAllShards} function serves as a wrapper, analogous to \texttt{SendShard} in Listing \ref{code:rpc-send-shard}. Internally, it executes gRPC calls to the \texttt{GetShard} method defined in the Protobuf file (Listing \ref{code:protobuf-for-agent}), the server-side handling of which will be discussed in the following section.
+
+\newpage
 
 \subsection{Agent service}
 
-Each agent is responsible for storing its assigned shards locally and participates as a node in the Raft cluster. The total number of agents corresponds to the Reed–Solomon configuration ($n+k$). Communication between the Gateway and agents is implemented using gRPC, which allows efficient binary data transfer and a rich set of commands. Inter-agent communication also uses gRPC, supporting operations such as sending file acknowledgments, managing cluster membership requests, and retrieving the current Merkle root hash for a given folder.
+Each agent is responsible for storing its assigned shards locally and participates as a node in the Raft cluster. The total number of agents corresponds to the Reed-Solomon configuration $n+k$. Communication between the gateway and agents is implemented using gRPC, which allows efficient binary data transfer and a rich set of commands. Inter-agent communication also uses gRPC, supporting operations such as sending file acknowledgments, managing cluster membership requests, and retrieving the current Merkle root hash for a given folder.
