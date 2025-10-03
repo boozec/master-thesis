@@ -13,7 +13,7 @@ As discussed in Section \ref{sec:raft-cluster-for-file-uploads}, the system is b
 To investigate communication patterns between the system components, two service APIs were implemented: a REST API, widely used for web services, and gRPC\footnote{\url{https://grpc.io/}}, developed by Google and based on Protobuf, which allows precise definition of the message types transmitted over the network.
 
 \begin{listing}[H]
-\caption{Protobuf definitions for the \texttt{Agent} service, used for communication between gateways and agents, as well as among agents themselves.}
+\caption{Protobuf definitions for the \texttt{Agent} service, used for communication between gateways and agents, as well as among agents themselves. The file is located in \texttt{internal/proto/agent.proto}.}
 \label{code:protobuf-for-agent}
 \begin{minted}[linenos,fontsize=\footnotesize]{protobuf}
 service Agent {
@@ -63,21 +63,21 @@ Listing \ref{code:protobuf-for-agent} illustrates the Protobuf definitions used 
 The distinctive feature of gRPC is that the Protobuf file can be directly compiled into Go code using a simple CLI, as shown in Listing \ref{code:protobuf-protoc}.
 
 \begin{listing}
-\caption{Protobuf compiler command that generates Go code from the service definition located at \texttt{<path>.proto}.}
+\caption{Protobuf compiler command that generates Go code from the service definition located at \texttt{agent.proto}.}
 \label{code:protobuf-protoc}
 \begin{minted}{shell}
 protoc --go_out=. \
         --go_opt=paths=source_relative \
         --go-grpc_out=. \
         --go-grpc_opt=paths=source_relative \
-        <path>.proto
+        agent.proto
 \end{minted}
 \end{listing}
 
 This command generates two Go files: 
 \begin{itemize}
-    \item \texttt{<path>.pb.go}, which contains the standard Protobuf message definitions and serialization code.
-    \item \texttt{<path>\_grpc.pb.go}, which contains the gRPC client and server stubs necessary to implement the service endpoints in Go. The methods defined in Listing \ref{code:protobuf-for-agent} are represented as an interface in this file, and they must be implemented to enable communication between a gateway and the agent service, or among agents themselves.
+    \item \texttt{agent.pb.go}, which contains the standard Protobuf message definitions and serialization code.
+    \item \texttt{agent\_grpc.pb.go}, which contains the gRPC client and server stubs necessary to implement the service endpoints in Go. The methods defined in Listing \ref{code:protobuf-for-agent} are represented as an interface in this file, and they must be implemented to enable communication between a gateway and the agent service, or among agents themselves.
 \end{itemize}
 
 Together, these files constitute the foundation for both gateway-to-agent and inter-agent communication in the system.
@@ -142,12 +142,12 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 Some clarifications on the code in Listing \ref{code:upload-handler} are in order.
 The details of file encryption are omitted, since they are not central to the current discussion. Similarly, the internal implementation of Reed-Solomon encoding is abstracted: the key point is that the function \texttt{reedSolomon.Create} returns the $n+k$ shards from the encrypted file. Error handling is also simplified for readability, and the specific contents of the \texttt{jsonResponse} are not reported, as they are not relevant to the design.
 
-The critical part lies in lines 14-16, where the \texttt{SendShard} method from the custom \texttt{rpc} module is invoked. This method serves as a wrapper around the generated gRPC client code contained in \texttt{<path>\_grpc.pb.go}. Its role is to establish the connection, transmit the shard, and delegate the call to the gRPC stub. The implementation of this wrapper is presented in Listing \ref{code:rpc-send-shard}.
+The critical part lies in lines 14-16, where the \texttt{SendShard} method from the custom \texttt{rpc} module is invoked. This method serves as a wrapper around the generated gRPC client code contained in \texttt{agent\_grpc.pb.go}. Its role is to establish the connection, transmit the shard, and delegate the call to the gRPC stub. The implementation of this wrapper is presented in Listing \ref{code:rpc-send-shard}.
 
-However, this implementation alone is not sufficient. A corresponding gRPC server must also be defined to handle the data transmitted in lines 27-31. As explained earlier, the code in \texttt{<path>\_grpc.pb.go} only provides the interface definition; the concrete server-side logic needs to be implemented in order to process the incoming shard data. This aspect will be discussed in detail in the next section.
+However, this implementation alone is not sufficient. A corresponding gRPC server must also be defined to handle the data transmitted in lines 27-31. As explained earlier, the code in \texttt{agent\_grpc.pb.go} only provides the interface definition; the concrete server-side logic needs to be implemented in order to process the incoming shard data. This aspect will be discussed in detail in the next section.
 
 \begin{listing}
-\caption{\texttt{SendShard} wrapper: intermediate function that establishes a gRPC connection to the target Agent, forwards the shard data to the generated gRPC client stub in \texttt{<path>\_grpc.pb.go}, and returns the response.}
+\caption{\texttt{SendShard} wrapper: intermediate function that establishes a gRPC connection to the target Agent, forwards the shard data to the generated gRPC client stub in \texttt{agent\_grpc.pb.go}, and returns the response.}
 \label{code:rpc-send-shard}
 \begin{minted}[linenos,fontsize=\footnotesize]{go}
 func SendShard(agent, filename string,
@@ -230,13 +230,13 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 \end{minted}
 \end{listing}
 
-As with the \texttt{UploadHandler}, certain implementation details are omitted for clarity, such as how the correct salt is determined for each file and the internal workings of the Reed-Solomon reconstruction algorithm. The \texttt{rpc.GetAllShards} function serves as a wrapper, analogous to \texttt{SendShard} in Listing \ref{code:rpc-send-shard}. Internally, it executes gRPC calls to the \texttt{GetShard} method defined in the Protobuf file (Listing \ref{code:protobuf-for-agent}), the server-side handling of which will be discussed in the following section.
+As with the \texttt{UploadHandler}, certain implementation details are omitted for simplicity, such as how the correct salt is determined for each file and the internal workings of the Reed-Solomon reconstruction algorithm. The \texttt{rpc.GetAllShards} function serves as a wrapper, analogous to \texttt{SendShard} in Listing \ref{code:rpc-send-shard}. Internally, it executes gRPC calls to the \texttt{GetShard} method defined in the Protobuf file (Listing \ref{code:protobuf-for-agent}), the server-side handling of which will be discussed in the following section.
 
 \newpage
 
 \subsection{Agent service}
 
-Each agent is responsible for storing its assigned shards locally and participates as a node in the Raft cluster. The total number of agents corresponds to the Reed–Solomon configuration $n+k$. Communication between the Gateway and agents is implemented using gRPC, which enables efficient binary data transfer and supports a wide range of commands. Inter-agent communication also relies on gRPC, providing operations such as shard acknowledgments, cluster membership management, and retrieval of the current Merkle root hash for a given folder.
+Each agent is responsible for storing its assigned shards locally and participates as a node in the Raft cluster. The total number of agents corresponds to the Reed-Solomon configuration $n+k$. Communication between the gateway and agents is implemented using gRPC, which enables efficient binary data transfer and supports a wide range of commands. Inter-agent communication also relies on gRPC, providing operations such as shard acknowledgments, cluster membership management, and retrieval of the current Merkle root hash for a given folder.
 
 \paragraph{Instance new agent}
 
@@ -265,7 +265,7 @@ server := server.Server{}
 // Register the gRPC server with the generated Protobuf bindings.
 pb.RegisterAgentServer(s, &server)
 
-s.RaftServer = newRaft(ctx, ..., ..., uri, ..., ...)
+server.RaftServer = newRaft(ctx, ..., ..., ..., ...)
 
 lis, _ := net.Listen("tcp", uri)
 s.Serve(lis)
@@ -327,14 +327,15 @@ The \texttt{logs} store persists the sequence of Raft log entries, ensuring that
 
 Together, these components enable each agent to participate reliably in the Raft consensus protocol, preserving consistency and fault tolerance across the distributed system.
 
-The careful reader will notice that the cluster is bootstrapped only within the \texttt{if} statement in lines 26–35 of Listing \ref{code:new-raft-function}. The \texttt{bootstrap} flag is passed when calling \texttt{newRaft} at startup. Importantly, only one node per cluster performs the bootstrap step during initialization. All other agents must join the cluster by sending a \texttt{JoinRaft} request over gRPC, as illustrated in Listing \ref{code:grpc-call-join-request}.
+The reader will notice that the cluster is bootstrapped only within the \texttt{if} statement in lines 24-33 of Listing \ref{code:new-raft-function}. The \texttt{bootstrap} flag is passed when calling \texttt{newRaft} at startup. Importantly, only one node per cluster performs the bootstrap step during initialization. All other agents must join the cluster by sending a \texttt{JoinRaft} request over gRPC, as illustrated in Listing \ref{code:grpc-call-join-request}.
 
 \begin{listing}[H]
 \caption{Client-side gRPC call to join an existing Raft cluster. The joining agent dials a Raft member and invokes the \texttt{JoinRaft} RPC with its address and identifier.}
 \label{code:grpc-call-join-request}
 \begin{minted}[linenos,fontsize=\footnotesize]{go}
 // Establish a connection to a Raft member.
-dialCtx, dialCancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+dialCtx, dialCancel := context.WithTimeout(context.Background(),
+                                    100*time.Millisecond)
 defer dialCancel()
 
 conn, err := grpc.DialContext(dialCtx, "<url-of-Raft-member-to-join>",
@@ -354,7 +355,7 @@ _, err = c.JoinRaft(ctx, &pb.JoinRequest{
 \end{minted}
 \end{listing}
 
-Meanwhile, the bootstrap node must handle these incoming gRPC requests, which is possible because every Raft node is also an agent, as shown in Listing \ref{code:grpc-response-join-request}. As always, some details are omitted to have a clearer snippet, such as the various error handlings.
+Meanwhile, the bootstrap node must handle these incoming gRPC requests, which is possible because every Raft node is also an agent, as shown in Listing \ref{code:grpc-response-join-request}. As always, some details are omitted to have simpler snippets, such as the various error handling.
 
 \begin{listing}[H]
 \caption{Server-side handler for \texttt{JoinRaft}. The bootstrap node receives a join request and updates the Raft cluster configuration by invoking the \texttt{join} helper function.}
@@ -367,7 +368,7 @@ func (s *Server) JoinRaft(ctx context.Context,
 
     // Attempt to add the new server to the Raft cluster.
     if err := join(s.RaftServer, id, address); err != nil {
-        // Handle error appropriately
+        // Handle error
     }
 
     return &pb.JoinResponse{}, nil
@@ -403,9 +404,9 @@ func join(r *raft.Raft, nodeId, addr string) error {
 \paragraph{Handlers for 
 upload and download}
 
-The gRPC calls \texttt{SendShard} and \texttt{GetShard}, introduced in Listings \ref{code:download-handler} and \ref{code:rpc-send-shard}, are handled by the agents’ gRPC servers, as illustrated in Listings \ref{code:send-shard-server} and \ref{code:get-shard-server}. For clarity, error handling and some path resolution details are omitted.
+The two gRPC calls \texttt{SendShard} and \texttt{GetShard}, introduced in Listings \ref{code:rpc-send-shard} and \ref{code:download-handler}, are handled by the agents’ gRPC servers, as illustrated in Listings \ref{code:send-shard-server} and \ref{code:get-shard-server}. For simplicity, error handling and some path resolution details are omitted.
 
-The key aspect to note is the function in Listing \ref{code:send-shard-server}, lines 12–30. This function retrieves the top-level and second-level folder roots for the shard, as shown in Figure \ref{fig:sequence-diagram-upload-file}. It then prepares a single gRPC request containing both roots (concatenated; each root is 32 bytes) and sends it to the leader. If the sender itself is the leader, the message is processed locally, avoiding duplicated code.
+The key aspect to note is the inner go-function in Listing \ref{code:send-shard-server}, lines 9-28. This function retrieves the top-level and second-level folder roots for the shard. Differently than Figure \ref{fig:sequence-diagram-upload-file}, it then prepares a single gRPC request containing both roots (concatenated; each root is 32 bytes) and sends it to the leader. If the sender itself is the leader, the message is processed locally.
 
 \begin{listing}[H]
 \caption{Server-side handler for \texttt{SendShard}. Retrieves folder roots, stores the shard locally, and forwards root information to the Raft leader.}
