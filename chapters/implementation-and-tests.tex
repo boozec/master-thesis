@@ -236,4 +236,229 @@ As with the \texttt{UploadHandler}, certain implementation details are omitted f
 
 \subsection{Agent service}
 
-Each agent is responsible for storing its assigned shards locally and participates as a node in the Raft cluster. The total number of agents corresponds to the Reed-Solomon configuration $n+k$. Communication between the gateway and agents is implemented using gRPC, which allows efficient binary data transfer and a rich set of commands. Inter-agent communication also uses gRPC, supporting operations such as sending file acknowledgments, managing cluster membership requests, and retrieving the current Merkle root hash for a given folder.
+Each agent is responsible for storing its assigned shards locally and participates as a node in the Raft cluster. The total number of agents corresponds to the Reed–Solomon configuration $n+k$. Communication between the Gateway and agents is implemented using gRPC, which enables efficient binary data transfer and supports a wide range of commands. Inter-agent communication also relies on gRPC, providing operations such as shard acknowledgments, cluster membership management, and retrieval of the current Merkle root hash for a given folder.
+
+\paragraph{Instance new agent}
+
+The Agent service must instantiate a new gRPC server at startup, while also initializing its participation in the Raft cluster. When a node starts a new cluster, the process is referred to as \emph{bootstrapping}. A simplified version of the Agent service startup is shown in Listing \ref{code:agent-main-go}.
+
+\begin{listing}[H]
+\caption{Agent service startup. The gRPC server is initialized and registered, and the node joins or bootstraps a Raft cluster.}
+\label{code:agent-main-go}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+import (
+    pb "<path_with_proto_files>"
+    // ...
+)
+
+// Server implements the gRPC service defined in the Protobuf file.
+type Server struct {
+    pb.UnimplementedAgentServer
+    RaftServer *raft.Server
+    // Other fields
+}
+
+s := grpc.NewServer()
+reflection.Register(s)
+server := server.Server{}
+
+// Register the gRPC server with the generated Protobuf bindings.
+pb.RegisterAgentServer(s, &server)
+
+s.RaftServer = newRaft(ctx, ..., ..., uri, ..., ...)
+
+lis, _ := net.Listen("tcp", uri)
+s.Serve(lis)
+\end{minted}
+\end{listing}
+
+Some details are omitted in Listing \ref{code:agent-main-go}, such as error handling, but two elements are particularly important:
+the \texttt{Server} struct, which implements the service interface generated from the Protobuf definition, and the \texttt{newRaft} function, which initializes a new Raft instance.  
+
+For this prototype, the HashiCorp Raft implementation\footnote{\url{https://github.com/hashicorp/raft}} has been adopted. A partial implementation of \texttt{newRaft} is shown in Listing \ref{code:new-raft-function}.
+
+\begin{listing}[H]
+\caption{Partial implementation of the \texttt{newRaft} function, which initializes the Raft consensus node.}
+\label{code:new-raft-function}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+import (
+    "github.com/hashicorp/raft"
+    boltdb "github.com/hashicorp/raft-boltdb"
+    // ...
+)
+
+func newRaft(ctx context.Context, bootstrap bool, id, raftAddress string,
+             fsm raft.FSM) (*raft.Raft, *raft.NetworkTransport, error) {
+    conf := raft.DefaultConfig()
+    conf.LocalID = raft.ServerID(id)
+
+    // Define the base directory for Raft persistence.
+
+    logs, _ := boltdb.NewBoltStore(filepath.Join(baseDir, "logs.dat"))
+    stable, _ := boltdb.NewBoltStore(filepath.Join(baseDir, "stable.dat"))
+    snaps, _ := raft.NewFileSnapshotStore(baseDir, 3, os.Stderr)
+
+    addr, _ := net.ResolveTCPAddr("tcp", raftAddress)
+    transport, _ := raft.NewTCPTransport(
+        raftAddress, addr, 3, 10*time.Second, os.Stderr)
+
+    r, _ := raft.NewRaft(conf, fsm, logs, stable, snaps, transport)
+
+    if bootstrap {
+        cfg := raft.Configuration{
+            Servers: []raft.Server{{
+                    ID:      conf.LocalID,
+                    Address: transport.LocalAddr(),
+                },
+            },
+        }
+        _ = r.BootstrapCluster(cfg).Error()
+    }
+
+    return r, transport, nil
+}
+\end{minted}
+\end{listing}
+
+Here, the \texttt{id} field identifies the node (e.g., \texttt{nodeA}), while \texttt{raftAddress} specifies the address where the Raft instance listens (e.g., \texttt{0.0.0.0:4001}). This address is distinct from the one used by the gRPC server.
+
+Several components in Listing \ref{code:new-raft-function} deserve further attention.  
+The \texttt{logs} store persists the sequence of Raft log entries, ensuring that all operations proposed to the cluster are durable. The \texttt{stable} store maintains critical metadata, such as the current term and cluster configuration, which must survive restarts. The \texttt{snaps} store provides periodic snapshots of the state machine, enabling log compaction and preventing unbounded growth. Finally, the \texttt{fsm} represents the finite state machine, which applies committed log entries to the storage layer, managing shard placement and retrieval.  
+
+Together, these components enable each agent to participate reliably in the Raft consensus protocol, preserving consistency and fault tolerance across the distributed system.
+
+The careful reader will notice that the cluster is bootstrapped only within the \texttt{if} statement in lines 26–35 of Listing \ref{code:new-raft-function}. The \texttt{bootstrap} flag is passed when calling \texttt{newRaft} at startup. Importantly, only one node per cluster performs the bootstrap step during initialization. All other agents must join the cluster by sending a \texttt{JoinRaft} request over gRPC, as illustrated in Listing \ref{code:grpc-call-join-request}.
+
+\begin{listing}[H]
+\caption{Client-side gRPC call to join an existing Raft cluster. The joining agent dials a Raft member and invokes the \texttt{JoinRaft} RPC with its address and identifier.}
+\label{code:grpc-call-join-request}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+// Establish a connection to a Raft member.
+dialCtx, dialCancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+defer dialCancel()
+
+conn, err := grpc.DialContext(dialCtx, "<url-of-Raft-member-to-join>",
+    grpc.WithTransportCredentials(insecure.NewCredentials()),
+    grpc.WithBlock())
+
+c := pb.NewAgentClient(conn)
+
+// Send a JoinRaft request with the new node's ID and Raft address.
+ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+defer cancel()
+
+_, err = c.JoinRaft(ctx, &pb.JoinRequest{
+    Address: raftAddress, // Address such as 0.0.0.0:4002
+    Id:      node, // Identifier such as nodeB
+})
+\end{minted}
+\end{listing}
+
+Meanwhile, the bootstrap node must handle these incoming gRPC requests, which is possible because every Raft node is also an agent, as shown in Listing \ref{code:grpc-response-join-request}. As always, some details are omitted to have a clearer snippet, such as the various error handlings.
+
+\begin{listing}[H]
+\caption{Server-side handler for \texttt{JoinRaft}. The bootstrap node receives a join request and updates the Raft cluster configuration by invoking the \texttt{join} helper function.}
+\label{code:grpc-response-join-request}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func (s *Server) JoinRaft(ctx context.Context,
+        in *pb.JoinRequest) (*pb.JoinResponse, error) {
+    address := in.GetAddress()
+    id := in.GetId()
+
+    // Attempt to add the new server to the Raft cluster.
+    if err := join(s.RaftServer, id, address); err != nil {
+        // Handle error appropriately
+    }
+
+    return &pb.JoinResponse{}, nil
+}
+
+
+// If a server with the same ID or address already exists, it is removed before
+// the new server is added as a voter.
+func join(r *raft.Raft, nodeId, addr string) error {
+    configFuture := r.GetConfiguration()
+
+    for _, srv := range configFuture.Configuration().Servers {
+        if srv.ID == raft.ServerID(nodeId) ||
+            srv.Address == raft.ServerAddress(addr) {
+            if srv.ID == raft.ServerID(nodeId) &&
+                srv.Address == raft.ServerAddress(addr) {
+                return nil
+            }
+            // Remove the existing server before re-adding.
+            _ = r.RemoveServer(srv.ID, 0, 0)
+        }
+    }
+
+    // Add the new server as a voting member of the Raft cluster.
+    f := r.AddVoter(raft.ServerID(nodeId), raft.ServerAddress(addr), 0, 0)
+    if f.Error() != nil {
+        return f.Error()
+    }
+    return nil
+}
+\end{minted}
+\end{listing}
+\paragraph{Handlers for 
+upload and download}
+
+The gRPC calls \texttt{SendShard} and \texttt{GetShard}, introduced in Listings \ref{code:download-handler} and \ref{code:rpc-send-shard}, are handled by the agents’ gRPC servers, as illustrated in Listings \ref{code:send-shard-server} and \ref{code:get-shard-server}. For clarity, error handling and some path resolution details are omitted.
+
+The key aspect to note is the function in Listing \ref{code:send-shard-server}, lines 12–30. This function retrieves the top-level and second-level folder roots for the shard, as shown in Figure \ref{fig:sequence-diagram-upload-file}. It then prepares a single gRPC request containing both roots (concatenated; each root is 32 bytes) and sends it to the leader. If the sender itself is the leader, the message is processed locally, avoiding duplicated code.
+
+\begin{listing}[H]
+\caption{Server-side handler for \texttt{SendShard}. Retrieves folder roots, stores the shard locally, and forwards root information to the Raft leader.}
+\label{code:send-shard-server}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func (s *Server) SendShard(ctx context.Context,
+    in *pb.ShardRequest) (*pb.ShardResponse, error) {
+    fname := in.GetFilename()
+    index := in.GetIndex()
+    data := in.GetData()
+    filename := fname[:len(fname)-2]
+    salt := fname[len(fname)-2:]
+
+    go func() {
+        // Compute top-level and second-level folder roots
+        rootLvl1, _ := merkletree.FolderRootHash(path.folderLvl1)
+        rootLvl2, _ := merkletree.FolderRootHash(path.folderLvl2)
+
+        // Prepare the acknowledgement message including both roots
+        req := &pb.ShardAckRequest{
+            Filename: filename + salt,
+            Index:    int64(index),
+            Roots:    append(rootLvl1, rootLvl2...),
+        }
+
+        // Forward the roots to the leader or process locally 
+        // if this node is the leader
+        if s.Store.Raft.State() == raft.Leader {
+            _, err = s.AckShard(ctx, req)
+        } else {
+            _, err = c.AckShard(ctx, req)
+        }
+    }()
+
+    return &pb.ShardResponse{Filename: path, Salt: []byte(salt)}, nil
+}
+\end{minted}
+\end{listing}
+
+\begin{listing}
+\caption{Server-side handler for \texttt{GetShard}. Retrieves the requested shard from local storage and returns its content.}
+\label{code:get-shard-server}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func (s *Server) GetShard(ctx context.Context,
+in *pb.ShardGetRequest) (*pb.ShardGetResponse, error) {
+    filename := in.GetFilename()
+    index := in.GetIndex()
+
+    // Resolve the actual path of the requested shard
+    f, _ := os.Open(path)
+    content, _ := ioutil.ReadAll(f)
+
+    return &pb.ShardGetResponse{Data: content}, nil
+}
+\end{minted}
+\end{listing}
