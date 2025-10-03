@@ -253,7 +253,7 @@ Returning to the example: suppose Agent 2 goes offline while Agent 3 comes onlin
 
 This highlights an important distinction: the Corruption Check \ref{sec:check-corruption} phase itself does not rely on the Reed-Solomon requirement of having $n$ correct shards. Instead, it depends only on the fact that the Raft log ensures a consistent view of the per-agent root hashes across all agents. Offline agents may lag behind in state (or even remain offline for the entire process) without affecting the verification. In fact, it would be possible to perform the corruption check even if more than $k$ agents are offline. The correctness of the two cases considered (Agents offline during upload and Agents offline during the corruption check) is ensured because the first case already satisfies the Reed-Solomon reconstruction requirement, while the verification itself relies solely on the consistency guaranteed by Raft. Therefore, the corruption check can safely verify the folder state based on the available information, independently of the offline agents.
 
-\subsection{Recovery of Missing Shards}
+\subsection{Recovery of Missing Shards} \label{sec:recovery-of-missing-shards}
 
 In the previous subsection, the reader learned what happens when an agent is offline during a file upload. This subsection discusses how missing shards are reconstructed when a previously offline agent comes back online.
 

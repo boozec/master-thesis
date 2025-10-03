@@ -463,3 +463,135 @@ in *pb.ShardGetRequest) (*pb.ShardGetResponse, error) {
 }
 \end{minted}
 \end{listing}
+
+\paragraph{Command structure}
+
+As introduced in Section \ref{sec:recovery-of-missing-shards}, agents send acknowledgments to confirm that a shard has been successfully stored during a file upload. This mechanism can also be observed in the \texttt{SendShard} function in Listing \ref{code:send-shard-server}, lines 24 and 26.
+
+Before presenting the server-side implementation of the \texttt{AckShard} call, it is necessary to clarify how messages are applied to the Raft log. This is achieved through a command-style object, consisting of an operation code (a simple integer) and an action value (an \texttt{interface{}} in Go). The Raft log interprets entries by first examining the operation code and then processing the corresponding action value. The definition is shown in Listing \ref{code:command-struct-for-raft}.
+
+\begin{listing}
+\caption{Command definition used for Raft log entries. Each command is identified by an opcode and carries an action payload.}
+\label{code:command-struct-for-raft}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+const (
+    // Acknowledge the successful storage of a shard
+    UploadAck OpCode = iota
+    
+    // Store a Merkle tree root hash
+    StoreRootHash
+    
+    // Store a Merkle tree hash for a specific agent
+    StoreAgentHash
+    
+    // Store the corruption status of a folder
+    SignalCorruption
+)
+
+type Command struct {
+    Code OpCode `json:"code"`
+    Action interface{} `json:"action"`
+}
+\end{minted}
+\end{listing}
+
+The action value can then be extracted with a cast to a concrete type and dispatched using a \texttt{switch} statement on \texttt{c.Code}.
+
+\paragraph{Acknowledgment}
+
+We now turn to the handling of the \texttt{AckShard} call on the server side. For clarity, some details are omitted, including error handling and the explicit check that the current node processing the request is indeed the cluster leader. The server-side implementation is shown in Listing \ref{code:ack-shard}, while Listing \ref{code:raft-method-to-add-log} illustrates how new messages are applied to the Raft log.
+
+\begin{listing}
+\caption{Server-side handler for \texttt{AckShard}. Updates shard acknowledgments, stores per-agent hashes, and records Merkle roots in the Raft log.}
+\label{code:ack-shard}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func (s *Server) AckShard(ctx context.Context,
+    in *pb.ShardAckRequest) (*pb.ShardAckResponse, error) {
+    filename := in.GetFilename()
+    index := in.GetIndex()
+    agentHashes := in.GetRoots()
+
+    // Split concatenated roots into two 32-byte values
+    agentRoots := [][]byte{agentHashes[:64], agentHashes[64:]}
+
+    // Mark the shard as acknowledged
+    done := make([]bool, N+K)
+    done[index] = true
+    shardAcknoledge(s.RaftServer, filename, done)
+
+    path := ... // Retrieve the final path
+    toplevel := path.folderLvl1
+    secondlevel := path.folderLvl2
+
+    // Store per-agent Merkle roots
+    saveAgentHash(s.RaftServer, index,
+        [][]byte{toplevel, secondlevel}, agentRoots)
+
+    // Compute and store global Merkle roots for the folders
+    root1, _ := merkletree.RootHash(hashes1[toplevel])
+    root2, _ := merkletree.RootHash(hashes2[secondlevel])
+    saveRoot(s.RaftServer, [][]byte{toplevel, secondlevel},
+            [][]byte{root1, root2})
+
+    return &pb.ShardAckResponse{Status: true}, nil
+}
+\end{minted}
+\end{listing}
+
+The function \texttt{shardAcknoledge} updates the acknowledgment status for a given shard using a boolean array, where the $i$-th position corresponds to Agent $i$. Updates are applied with a bitwise OR (\texttt{done[i] || prevDone[i]}) and protected with a mutex to prevent race conditions during concurrent \texttt{r.Apply} calls.
+
+The functions \texttt{saveRoot} and \texttt{saveAgentHash} persist Merkle roots and per-agent roots, respectively, as shown in Listing \ref{code:raft-method-to-add-log}. Unlike in previous sections, the two folder levels are split into four global maps (\texttt{roots1}, \texttt{roots2}, \texttt{hashes1}, \texttt{hashes2}), which simplifies extensions to deeper folder hierarchies while also improving efficiency.
+
+Each command action is associated with a concrete type such as \texttt{ShardDone}, \texttt{MerkletreeRootHash}, or \texttt{MerkletreeHash}. This design choice makes it easier to parse and interpret actions later on. Since Raft log messages are stored as raw bytes, serializing them into structured types provides a reliable way to access and manipulate individual parameters.
+
+Finally, the \texttt{merkletree.RootHash} function, used to compute folder roots, will be discussed in detail in the following paragraph.
+
+\begin{listing}
+\caption{Helper functions for applying shard acknowledgments, Merkle roots, and per-agent hashes to the Raft log.}
+\label{code:raft-method-to-add-log}
+\begin{minted}[linenos,fontsize=\footnotesize]{go}
+func shardAcknoledge(r raft.Server, filename string, done []bool) error {
+    c := Command{
+        Code: UploadAck,
+        Action: ShardDone{
+            Filename: []byte(filename),
+            Done: done,
+        },
+    }
+
+    raftRequestData, _ := json.Marshal(c)
+    return r.Apply([]byte(raftRequestData), 1time.Second).Error()
+}
+
+func saveRoot(r raft.Server, folders [][]byte, hashes [][]byte) error {
+    c := Command{
+        Code: StoreRootHash,
+        Action: MerkletreeRootHash{
+            Folder1: folders[0],
+            RootHash1: hashes[0],
+            Folder2: folders[1],
+            RootHash2: hashes[1],
+        },
+    }
+    
+    raftRequestData, _ := json.Marshal(c)
+    return r.Apply([]byte(raftRequestData), 1time.Second).Error()
+}
+
+func saveAgentHash(r raft.Server, agentId int64, folders [][]byte, hashes [][]byte) error {
+    c := Command{
+        Code: StoreAgentHash,
+        Action: MerkletreeHash{
+            AgentId: agentId,
+            Folder1: folders[0],
+            AgentHash1: hashes[0],
+            Folder2: folders[1],
+            AgentHash2: hashes[1],
+        },
+    }
+    
+    raftRequestData, _ := json.Marshal(c)
+    return r.Apply([]byte(raftRequestData), 1time.Second).Error()
+}
+\end{minted}
+\end{listing}
