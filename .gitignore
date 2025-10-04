@@ -1,0 +1,15 @@
+main.aux
+main.bbl
+main.blg
+main.lof
+main.log
+main.lot
+main.out
+main.py
+main.toc
+minted.sty
+pyproject.toml
+*.aux
+_minted/
+uv.lock
+.python-version
