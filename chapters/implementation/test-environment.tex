@@ -7,3 +7,29 @@ from the leader agent in the Raft cluster.
 In this new section the reader will read how the tests environment was
 setted up with different scenarios, and later will be aware about the obtained
 results.
+
+The tests has been completed in a cluster of 9 machines with Ubuntu 24.04.01 LTS (GNU/Linux 6.8.0-51-generic x86_64)
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+    \hline
+       \textbf{Node ID} & \textbf{IPv4} & \textbf{CPU(s)} & \textbf{Thread(s) per core} &
+       \textbf{Core(s) per socket} & \textbf{RAM} & \textbf{Disk} \\
+       \hline
+        GW & 51.15.221.121 & 8 & 1 & 8 & 32 GB & 45 GB \\
+
+        Agent 1 & 212.47.241.22 & 4 & 1 & 4 & 16 GB & 45 GB \\
+        Agent 2 & 51.15.138.169 & 4 & 1 & 4 & 16 GB & 45 GB \\
+        Agent 3 & 51.159.178.75 & 4 & 1 & 4 & 8 GB & 45 GB \\
+        Agent 4 & 51.158.75.32 & 4 & 1 & 4 & 8 GB & 45 GB \\
+        Agent 5 & 51.158.233.202 & 4 & 1 & 4 & 8 GB & 45 GB \\
+        Agent 6 & 51.15.108.2 & 4 & 1 & 4 & 8 GB & 45 GB \\
+        Agent 7 & 151.115.42.176 & 4 & 1 & 4 & 8 GB & 45 GB \\
+        Agent 8 & 151.115.104.48 & 4 & 1 & 4 & 8 GB & 45 GB \\
+        \hline
+    \end{tabular}
+    \caption{...}
+    \label{tab:test-vms-specs}
+\end{table}
+
