@@ -329,8 +329,9 @@ func (s *Server) SendShard(ctx context.Context,
 \end{minted}
 \end{listing}
 
+\newpage
 \section{Server-Side GetShard Handler} \label{code:get-shard-server}
-\begin{listing}
+\begin{listing}[H]
 \caption{Server-side handler for \texttt{GetShard}. Retrieves the requested shard from local storage and returns its content.}
 \begin{minted}[linenos,fontsize=\footnotesize]{go}
 func (s *Server) GetShard(ctx context.Context,
@@ -452,7 +453,7 @@ func saveAgentHash(r raft.Server, agentId int64, folders [][]byte,
 \section{Merkle Tree Creation in Rust} \label{code:partial-mt-rs-1}
 
 \begin{listing}[H]
-\caption{Partial implementation of the Rust binary for Merkle tree creation}
+\caption{Partial implementation of the Rust binary for Merkle tree creation.}
 \begin{minted}[linenos,fontsize=\footnotesize]{rust}
 let tree = if args.file {
     MerkleTree::from_paths(hasher, args.args)
@@ -468,7 +469,7 @@ println!("{}", tree.root().hash());
 
 \section{Merkle Proof Verification in Rust} \label{code:partial-mt-rs-2}
 \begin{listing}[H]
-\caption{Extension of the Rust binary for Merkle proof verification}
+\caption{Extension of the Rust binary for Merkle proof verification.}
 \begin{minted}[linenos,fontsize=\footnotesize]{rust}
 if let Some(root_hash) = args.proof {
     let nodes = // Build nodes from folders or raw data ...
@@ -487,8 +488,8 @@ if let Some(root_hash) = args.proof {
 
 \section{Merkle Tree Module Prototypes (Go)} \label{code:prototypes-merkletree-module}
 
-\begin{listing}[htp]
-\caption{Prototypes of the \texttt{merkletree} Go module}
+\begin{listing}[H]
+\caption{Prototypes of the \texttt{merkletree} Go module.}
 \begin{minted}[linenos,fontsize=\footnotesize]{go}
 // Verify a Merkle tree proof for some `hashes` with a `rootHash`.
 func Verify(hashes [][]byte, rootHash []byte) bool { ... }
@@ -502,7 +503,7 @@ func RootHash(data [][]byte) ([]byte, error) { ... }
 \end{listing}
 
 
-\section{Check Corruption Algorithm} \label{code:check-corruption-algorithm}
+\section{Corruption Check Algorithm} \label{code:check-corruption-algorithm}
 
 \begin{listing}[H]
 \caption{Partial implementation of the corruption check algorithm. The leader

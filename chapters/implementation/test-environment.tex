@@ -5,7 +5,7 @@ component interacts within the complete flow, from a user that uploads a file to
 the leader performing the Corruption Check phase (showed in Section
 \ref{sec:check-corruption}).
 
-This section presents the testing environment, the scenarios used during evaluation, and the obtained results. The tests were executed on a cluster of nine machines running Ubuntu 24.04.1 LTS (GNU/Linux 6.8.0-51-generic x86\_64). The specifications of the virtual machines are summarized in Table \ref{tab:vms-specs}. The nodes were geographically distributed across the European continent.
+This section presents the testing environment, the scenarios used during evaluation, and the obtained results. The tests were executed on a cluster of nine machines running Ubuntu 24.04.1 LTS (GNU/Linux 6.8.0-51-generic x86\_64). The specifications of the virtual machines are summarised in Table \ref{tab:vms-specs}. The nodes were geographically distributed across the European continent.
 
 \begin{table}[h!]
     \centering
@@ -14,14 +14,14 @@ This section presents the testing environment, the scenarios used during evaluat
        \textbf{Node ID} & \textbf{IPv4} & \textbf{CPU(s)} & \textbf{RAM} & \textbf{Disk} \\
        \hline
         GW & 51.15.221.121 & 8 & 32 GB & 45 GB \\
-        Agent 1 & 212.47.241.22 & 4 & 16 GB & 45 GB \\
-        Agent 2 & 51.15.138.169 & 4 & 16 GB & 45 GB \\
-        Agent 3 & 51.159.178.75 & 4 & 8 GB & 45 GB \\
-        Agent 4 & 51.158.75.32 & 4 & 8 GB & 45 GB \\
-        Agent 5 & 51.158.233.202 & 4 & 8 GB & 45 GB \\
-        Agent 6 & 51.15.108.2 & 4 & 8 GB & 45 GB \\
-        Agent 7 & 151.115.42.176 & 4 & 8 GB & 45 GB \\
-        Agent 8 & 151.115.104.48 & 4 & 8 GB & 45 GB \\
+        agent 1 & 212.47.241.22 & 4 & 16 GB & 45 GB \\
+        agent 2 & 51.15.138.169 & 4 & 16 GB & 45 GB \\
+        agent 3 & 51.159.178.75 & 4 & 8 GB & 45 GB \\
+        agent 4 & 51.158.75.32 & 4 & 8 GB & 45 GB \\
+        agent 5 & 51.158.233.202 & 4 & 8 GB & 45 GB \\
+        agent 6 & 51.15.108.2 & 4 & 8 GB & 45 GB \\
+        agent 7 & 151.115.42.176 & 4 & 8 GB & 45 GB \\
+        agent 8 & 151.115.104.48 & 4 & 8 GB & 45 GB \\
         \hline
     \end{tabular}
     \caption{Specifications of the machines used in the testing environment.}
@@ -37,14 +37,16 @@ Each test scenario considered four parameters:
     \item \textbf{File size}: size of each uploaded file. Since each file is divided into $n + k$ shards, the size of a single shard equals $\frac{\text{file size}}{\text{number of agents}}$ bytes.
 \end{itemize}
 
-After each upload, the environment was tested through the corruption check, measuring the total elapsed time in seconds from the initial check request to its completion. Each plot reports the average total elapsed time over three independent runs.
+Once all files had been uploaded, the system was evaluated through the corruption check procedure. The total elapsed time, measured in seconds, was recorded from the initiation of the check until its completion. A test was deemed valid only if the system successfully detected file corruption. Each plotted value represents the average total elapsed time over three independent runs.
 
-\paragraph{Test 1: Large files, all Agents online}
+\paragraph{Test 1: Large files, all agents online}
 
 In the first scenario, 100 files of 100 MB each were uploaded, yielding a total
 dataset of 10 GB. Each file was divided into $n+k$ shards and distributed across
-the Agents in the cluster. All Agents remained online during the corruption
-check. Figure \ref{fig:test-1} (top-left) shows the elapsed time for the corruption check as the number of Agents increases from 3 to 8. As expected, elapsed time grows with the number of Agents due to the increasing number of shard verifications. The elapsed time ranges from 1.373 seconds with 3 Agents to 23.892 seconds with 8 Agents. These results establish a baseline for moderate-size files, indicating that the system efficiently handles shard verification with minimal computational overhead.
+the agents in the cluster. All agents remained online during the corruption
+check. Figure \ref{fig:test-1} shows the elapsed time for the corruption check
+as the number of agents increases from 3 to 8. As expected, elapsed time grows
+with the number of agents due to network delays. The elapsed time ranges from 1.373 seconds with 3 agents to 23.892 seconds with 8 agents. These results establish a baseline for moderate-size files, indicating that the system efficiently handles shard verification with minimal computational overhead.
 
 \begin{figure}[!ht]
 \centering
@@ -68,27 +70,32 @@ check. Figure \ref{fig:test-1} (top-left) shows the elapsed time for the corrupt
     point meta=explicit symbolic
 ]
 
-\addplot[color=blue, mark=*, line width=1pt] coordinates {
-    (3,1.373) [1.373s]
-    (4,1.875) [1.875s]
-    (5,4.671) [4.671s]
-    (6,7.985) [7.985s]
-    (7,14.978) [14.978s]
-    (8,23.892) [23.892s]
+\addplot[color=blue!40!black, mark=*, line width=1pt] coordinates {
+    (3,1.373) [1.373]
+    (4,1.875) [1.875]
+    (5,4.671) [4.671]
+    (6,7.985) [7.985]
+    (7,14.978) [14.978]
+    (8,23.892) [23.892]
 };
 \end{axis}
 \end{tikzpicture}
-\caption{Elapsed time of the corruption check with 100 files, each 100 MB in size, 0 offline agents.}
+\caption{Elapsed time for the corruption check with 100 files of 100 MB each,
+    with all agents online. Each agent stores 100 $\times$ (100 MB / number of agents) of data.}
 \label{fig:test-1}
 \end{figure}
 
 
 \newpage
-\paragraph{Test 2: Many small files, all Agents online}
+\paragraph{Test 2: Many small files, all agents online}
 
 The second test involved 10,000 files of 1 MB each, maintaining the same total
 dataset size of 10 GB. This scenario highlights the impact of a high file count
-relative to file size. As shown in Figure \ref{fig:test-2} (top-right), elapsed time increases substantially with the number of Agents, from 0.469 seconds with 3 Agents to 81.032 seconds with 8 Agents. The steep growth compared to Test 1 indicates that the number of files significantly influences corruption check performance, primarily due to the overhead of metadata operations and managing numerous small shards. The results suggest that for datasets with many small files, increasing the cluster size may yield diminishing returns, as coordination costs become more significant.
+relative to file size. As shown in Figure \ref{fig:test-2}, elapsed time
+increases substantially with the number of agents, from 0.469 seconds with 3
+agents to 81.032 seconds with 8 agents. The steep growth compared to Test 1
+indicates that the number of files significantly influences corruption check
+performance, primarily due to the overhead of managing numerous small shards.
 
 \begin{figure}[!ht]
 \centering
@@ -112,27 +119,70 @@ relative to file size. As shown in Figure \ref{fig:test-2} (top-right), elapsed 
     point meta=explicit symbolic
 ]
 
-\addplot[color=blue, mark=*, line width=1pt] coordinates {
-    (3,0.4685) [0.469s]
-    (4,5.577) [5.577s]
-    (5,16.902) [16.902s]
-    (6,26.747) [26.747s]
-    (7,54.986) [54.986s]
-    (8,81.032) [81.032s]
+\addplot[color=orange, mark=*, line width=1pt] coordinates {
+    (3,0.4685) [0.469]
+    (4,5.577) [5.577]
+    (5,16.902) [16.902]
+    (6,26.747) [26.747]
+    (7,54.986) [54.986]
+    (8,81.032) [81.032]
 };
 \end{axis}
 \end{tikzpicture}
-\caption{Elapsed time of the corruption check with 10000 files, each 1 MB in size, 0 offline agents.}
+\caption{Elapsed time for the corruption check with 10,000 files of 1 MB each,
+    with all agents online. Each agent stores 10,000 $\times$ (1 MB / number of agents) of data.}
 \label{fig:test-2}
 \end{figure}
 
 \newpage
-\paragraph{Test 3: Small files, partially offline Agents}
+\paragraph{Test 3: Large files, but small dataset}
 
-The third scenario evaluates the effect of offline Agents. 1,000 files of 150 KB
-each were uploaded, and elapsed time was measured both with all Agents online
-and with a subset of Agents offline during the corruption check.
-Figure \ref{fig:test-3} (bottom-left) compares the two configurations. Offline Agents introduce additional latency due to shard reconstruction, with elapsed times ranging from 28.2 to 91.338 seconds, compared to 3.1 to 69.221 seconds when all Agents are online. The overhead is particularly pronounced at smaller cluster sizes, highlighting the computational cost associated with reconstructing missing shards. These results confirm that erasure coding ensures data availability despite node failures, albeit at a measurable performance cost.
+This test evaluates system performance on a small dataset consisting of 10 files, each 1 GB in size, under different cluster sizes. All agents remained online during the corruption check. Figure \ref{fig:test-5} shows the elapsed time as the number of agents increases from 3 to 8. As expected, elapsed time grows with the number of agents, mainly due to shard verification and network communication overhead. The results indicate that even for small datasets, increasing cluster size introduces a modest computational cost, which remains manageable.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=12cm, height=8cm,
+    xlabel={Number of agents},
+    ylabel={Elapsed time (s)},
+    xmin=3, xmax=8,
+    ymin=0, ymax=5,
+    xtick={3,4,5,6,7,8},
+    ytick={0,1,2,3,4,5},
+    grid=major,
+    grid style={dashed,gray!30},
+    thick,
+    title={10 files of 1 GB each},
+    enlargelimits=0.1,
+    clip=false,
+    nodes near coords,
+    every node near coord/.append style={font=\small, anchor=south, yshift=2pt},
+    point meta=explicit symbolic
+]
+
+\addplot[color=purple, mark=*, line width=1pt] coordinates {
+    (3,0.6166) [0.617]
+    (4,1.105) [1.105]
+    (5,1.432) [1.432]
+    (6,1.772) [1.772]
+    (7,2.575) [2.575]
+    (8,3.856) [3.856]
+};
+\end{axis}
+\end{tikzpicture}
+\caption{Elapsed time for the corruption check with 10 files of 1 GB each, with all agents online. Each agent stores $10 \times (1 \text{ GB} / \text{number of agents})$ of data.}
+\label{fig:test-5}
+\end{figure}
+\newpage
+\paragraph{Test 4: Small files, partially offline agents}
+
+The third scenario evaluates the effect of offline agents. 1,000 files of 150 KB
+each were uploaded, and elapsed time was measured both with all agents online
+and with a subset of agents offline during the corruption check.
+Figure \ref{fig:test-3} compares the two configurations. Offline agents
+introduce additional latency due to the timeout before retrieving the previous
+saved hash, with elapsed times ranging from 28.2 to 91.338 seconds, compared to 3.1 to 69.221 seconds when all agents are online.
 
 \begin{figure}[!ht]
 \centering
@@ -148,7 +198,7 @@ Figure \ref{fig:test-3} (bottom-left) compares the two configurations. Offline A
     grid=major,
     grid style={dashed,gray!30},
     thick,
-    title={1000 files of 150 KB each},
+    title={1,000 files of 150 KB each},
     enlargelimits=0.1,
     clip=false,
     nodes near coords,
@@ -158,39 +208,37 @@ Figure \ref{fig:test-3} (bottom-left) compares the two configurations. Offline A
 
 % Online agents
 \addplot[color=blue, mark=*, line width=1pt] coordinates {
-    (3,3.1) [3.1s]
-    (4,3.492) [3.492s]
-    (5,13.555) [13.555s]
-    (6,22.323) [22.323s]
-    (7,45.724) [45.724s]
-    (8,69.221) [69.221s]
+    (3,3.1) [3.1]
+    (4,3.492) [3.492]
+    (5,13.555) [13.555]
+    (6,22.323) [22.323]
+    (7,45.724) [45.724]
+    (8,69.221) [69.221]
 };
 
 % Offline agents
 \addplot[color=red, mark=square*, line width=1pt] coordinates {
-    (3,28.2) [28.2s]
-    (4,30.601) [30.601s]
-    (5,35) [35s]
-    (6,55.713) [55.713s]
-    (7,86.510) [86.510s]
-    (8,91.338) [91.338s]
+    (3,28.2) [28.2]
+    (4,30.601) [30.601]
+    (5,35) [35]
+    (6,55.713) [55.713]
+    (7,86.510) [86.510]
+    (8,91.338) [91.338]
 };
 
 \end{axis}
 \end{tikzpicture}
-\caption{Elapsed time of the corruption check with 1000 files, each 150 KB in
-    size. In blue 0 offline agents; in red with offline
+\caption{Elapsed time of the corruption check with 1,000 files, each 150 KB in
+    size. Each agent stores 1,000 $\times$ (150 KB / number of agents) of data. In blue with none offline agents; in red with offline
     agents.}
 \label{fig:test-3}
 \end{figure}
 
 \newpage
-\paragraph{Test 4: Very large number of tiny files}
+\paragraph{Test 5: Very large number of tiny files}
 
-The fourth test examines system behavior with an extremely large number of very
-small files. The dataset consisted of 1,000,000 files, distributed in two
-configurations: 3-byte files across 3 Agents and 4-byte files across 4 Agents.
-Figure \ref{fig:test-4} (bottom-right) shows that the corruption check completes in under 5 minutes for both configurations, demonstrating scalability for large file counts. Interestingly, adding an additional Agent increases elapsed time by approximately 14\%, suggesting that the coordination overhead of an extra node outweighs marginal benefits for extremely small files. While the total data volume is minimal (3-4 MB), elapsed times are substantial, confirming that metadata operations and shard tracking dominate the performance cost in this scenario. These results indicate that the system can efficiently handle real-world workloads involving millions of small objects, such as IoT sensor data or fragmented logs, though careful consideration of cluster size is necessary for optimal performance.
+The fourth test evaluates system performance with an extremely large number of very small files. The dataset consisted of one million files, distributed across different cluster configurations. Unlike the previous tests, where file sizes varied with the number of agents, in this case each file had a fixed size of 4 KB. Consequently, increasing the number of agents also increases the total global dataset size, allowing an assessment of how the system handles both a high file count and a growing overall workload.
+
 
 \begin{figure}[!ht]
 \centering
@@ -199,14 +247,14 @@ Figure \ref{fig:test-4} (bottom-right) shows that the corruption check completes
     width=12cm, height=8cm,
     xlabel={Number of agents},
     ylabel={Elapsed time (s)},
-    xmin=2.5, xmax=4.5,
-    ymin=100, ymax=400,
-    xtick={3,4},
-    ytick={100,150,200,250,300,350,400},
+    xmin=2.5, xmax=6.5,
+    ymin=10, ymax=90,
+    xtick={3,4,5,6},
+    ytick={0,10,20,30,40,50,60,70,80,90,100},
     grid=major,
     grid style={dashed,gray!30},
     thick,
-    title={1000000 files of 3-4 B each},
+    title={1,000,000 files of 4 KB each},
     enlargelimits=0.1,
     clip=false,
     nodes near coords,
@@ -214,12 +262,43 @@ Figure \ref{fig:test-4} (bottom-right) shows that the corruption check completes
     point meta=explicit symbolic
 ]
 
-\addplot[color=green, mark=*, line width=1pt] coordinates {
-    (3,217.4) [217.4s]
-    (4,248.512) [248.512s]
+\addplot[color=green!80!black, mark=*, line width=1pt] coordinates {
+    (3,26.314) [26.314]
+    (4,36.196) [36.196]
+    (5,58.639) [58.639]
+    (6,82.430) [82.430]
 };
 \end{axis}
 \end{tikzpicture}
-\caption{Elapsed time for very large datasets.}
+\caption{Elapsed time for corruption check on very large datasets. The total dataset size increases
+    with the number of agents: 12 GB for 3 agents, 16 GB for 4 agents, 20 GB
+    for 5 agents, and 24 GB for 6 agents. Each agent stores 4 GB of data.}
 \label{fig:test-4}
 \end{figure}
+
+\newpage
+
+\paragraph{Results}
+
+The experimental evaluation demonstrates that the system scales predictably and
+maintains reliable performance across a wide variety of workloads.
+
+In Test 1, with 100 files of 100 MB each (10 GB total), elapsed time increased from 1.37 s
+with 3 agents to 23.89 s with 8 agents, demonstrating an almost linear scaling trend.
+
+In Test 2, using 10,000 files of 1 MB each (10 GB total), elapsed time grew from 0.47 s to
+81.03 s as the number of agents increased, representing an approximately more
+than 170x rise that highlights the additional coordination cost of managing many independent files.
+ The results suggest that for datasets with many small files, increasing the cluster size may yield diminishing returns, as coordination costs become more significant.
+
+
+Test 3, with ten files of 1 GB each (10 GB total), confirmed near-linear scalability, with elapsed time increasing from 0.62 s to 3.86 s as the cluster expanded from 3 to 8 agents.
+Compared to the previous tests, this result shows that the system checks larger files more efficiently: despite the total dataset size being identical to Tests 1 and 2, the corruption check completes significantly faster than in Test 2 (1 MB files). This indicates that when file sizes increase and file count decreases, the system benefits from reduced management overhead and communication steps, achieving faster integrity verification even for larger individual files.
+
+Test 4, with 1,000 files of 150 KB each (150 MB total), confirmed that the system remains operational under node unavailability: when some agents were offline, execution time rose by roughly 9x for smaller cluster sizes (from 3.1 s to 28.2 s with 3 agents), while the relative impact diminished as the number of agents increased. The additional delays in this scenario can also be attributed in part to Raft consensus checks, which introduce further waiting time when nodes are offline or recovering.
+
+Finally, Test 5, which differs from the previous four tests, involving one million files of 4 KB each, total processing time
+ranged from 26.31 s to 82.43 s as the global dataset grew from 12 GB to 24 GB,
+demonstrating consistent throughput even at extreme file counts.
+
+Overall, the results indicate that the system scales efficiently with both dataset volume and file count, with performance trends showing near-linear growth for large files and super-linear growth for high file counts.

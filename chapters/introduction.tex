@@ -15,7 +15,7 @@ Verifying file integrity at the file level quickly becomes inefficient as the da
 
 Cubbit's use of Reed-Solomon coding ensures that files can be reconstructed even when some shards are missing or corrupted. However, Reed-Solomon alone does not provide a way to verify the integrity of individual shards. This means that a reconstructed file could include corrupted data without the system being able to detect where the corruption occurred.
 
-Merkle trees address this gap, providing an efficient mechanism to detect and localize corruption by verifying a logarithmic number of hashes along an authentication path. The key challenge lies in constructing and verifying Merkle trees in a distributed setting, where some shards are stored on agents that may be offline.
+Merkle trees address this gap, providing an efficient mechanism to detect and localise corruption by verifying a logarithmic number of hashes along an authentication path. The key challenge lies in constructing and verifying Merkle trees in a distributed setting, where some shards are stored on agents that may be offline.
 
 This thesis addresses the need for a corruption detection system that:
 \begin{itemize}
@@ -49,4 +49,4 @@ Chapter 3 describes the architecture of the proposed corruption detection system
 
 Chapter 4 presents the prototype implementation and the experimental evaluation. The system is tested under different scenarios, varying both the number of agents in the cluster and the number of files stored per agent. Controlled corruption is deliberately injected into the data, and the evaluation measures the elapsed time between the initiation of a corruption check and the correct identification of the corrupted file.
 
-Chapter 5 concludes the thesis by summarizing the main contributions, highlighting limitations, and outlining possible directions for future work.
+Chapter 5 concludes the thesis by summarising the main contributions, highlighting limitations, and outlining possible directions for future work.

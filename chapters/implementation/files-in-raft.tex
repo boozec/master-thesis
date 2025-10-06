@@ -112,7 +112,7 @@ dispatched using a \texttt{switch} statement on instance's \texttt{Code}.
 
 \paragraph{Acknowledgment}
 
-We now turn to the handling of the \texttt{AckShard} call on the server side. For simplicity, some details are omitted, including error handling and the explicit check that the current node processing the request is indeed the cluster leader. The server-side implementation is shown in Listing \ref{code:ack-shard}, while Listing \ref{code:raft-method-to-add-log} illustrates how new messages are applied to the Raft log.
+For simplicity, some details on the handling of the \texttt{AckShard} call on the server side are omitted, including error handling and the explicit check that the current node processing the request is indeed the cluster leader. The server-side implementation is shown in Listing \ref{code:ack-shard}, while Listing \ref{code:raft-method-to-add-log} illustrates how new messages are applied to the Raft log.
 
 The function \texttt{shardAcknoledge} updates the acknowledgment status for a
 given shard using a boolean array, where the $i$-th position corresponds to
@@ -165,7 +165,7 @@ generation and proof verification. The flow in illustrated in Figure
     \draw[->, thick] (goapp) -- (gomodule) node[midway, right] {API call};
     \draw[->, thick] (gomodule) -- (exec) node[midway, right] {system call};
     \draw[->, thick] (exec) -- (rustbin) node[midway, right] {binary execution};
-    \draw[->, loosely dashed] (rustbin) -- (rustlib) node[midway, right] {library call};
+    \draw[->, thick] (rustbin) -- (rustlib) node[midway, right] {library call};
 
     % Return arrows
     \draw[<-, thick, dashed] (gomodule.west) -- ++(-4,0) -- ++(0,-4) -- (rustbin.west)
@@ -194,8 +194,8 @@ In this case, passing a \texttt{--proof} flag triggers Merkle proof validation i
 tree creation, as shown in Listing \ref{code:partial-mt-rs-2}. The output in this case is 
 a boolean value (\texttt{true} or \texttt{false}) indicating whether the proof is valid.  
 
-For completeness, the Go module \texttt{merkletree} provides simplified prototypes for 
-proof verification and root computation, listed in \ref{code:prototypes-merkletree-module}. 
+For completeness, the Go module \texttt{merkletree} provides methods for 
+proof verification and root computation; their prototypes are prototypeslisted in \ref{code:prototypes-merkletree-module}. 
 These are thin wrappers that internally call the Rust binary via 
 \texttt{exec.Command} and capture its output. This design avoids the need for 
 complex Go-Rust bindings, while taking advantage of the high-performance Rust 
