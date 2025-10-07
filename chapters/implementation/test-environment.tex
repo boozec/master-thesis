@@ -37,7 +37,8 @@ Each test scenario considered four parameters:
     \item \textbf{File size}: size of each uploaded file. Since each file is divided into $n + k$ shards, the size of a single shard equals $\frac{\text{file size}}{\text{number of agents}}$ bytes.
 \end{itemize}
 
-Once all files had been uploaded, the system was evaluated through the corruption check procedure. The total elapsed time, measured in seconds, was recorded from the initiation of the check until its completion. A test was deemed valid only if the system successfully detected file corruption. Each plotted value represents the average total elapsed time over three independent runs.
+All the scenarios consider that some agents, respecting the Reed-Solomon
+requirement, could be offline during the uploads. In these scenarios, the time of shard recovery described in Section~\ref{sec:recovery-of-missing-shards} was included. Once all files had been uploaded, the system was evaluated through the corruption check procedure. The total elapsed time, measured in seconds, was recorded from the initiation of the check until its completion. A test was deemed valid only if the system successfully detected file corruption. Each plotted value represents the average total elapsed time over three independent runs.
 
 \paragraph{Test 1: Large files, all agents online}
 
@@ -280,25 +281,20 @@ The fourth test evaluates system performance with an extremely large number of v
 
 \paragraph{Results}
 
-The experimental evaluation demonstrates that the system scales predictably and
-maintains reliable performance across a wide variety of workloads.
+The experimental evaluation demonstrates that the system maintains correctness and functional reliability across a wide variety of scenarios. However, performance degrades as the cluster size increases, primarily due to the coordination and communication overhead introduced by the Raft consensus, as well as the computational cost of Merkle tree operations and network latency when retrieving root hashes from agents.
 
-In Test 1, with 100 files of 100 MB each (10 GB total), elapsed time increased from 1.37 s
-with 3 agents to 23.89 s with 8 agents, demonstrating an almost linear scaling trend.
+In Test 1, with 100 files of 100 MB each (10 GB total), the elapsed time increased from 1.37 s with 3 agents to 23.89 s with 8 agents. This trend shows that the system remains functional but becomes progressively slower as coordination overhead grows.
 
-In Test 2, using 10,000 files of 1 MB each (10 GB total), elapsed time grew from 0.47 s to
-81.03 s as the number of agents increased, representing an approximately more
-than 170x rise that highlights the additional coordination cost of managing many independent files.
- The results suggest that for datasets with many small files, increasing the cluster size may yield diminishing returns, as coordination costs become more significant.
+In Test 2, using 10,000 files of 1 MB each (10 GB total), elapsed time increased
+from 0.47 s with 3 agents to to 81.03 s with 8 agents. This represents about
+170x increase, clearly showing that scenarios with many small files amplify the cost of synchronization and consensus, leading to diminishing performance returns as the cluster expands.
 
+Test 3, with 10 files of 1 GB each (10 GB total), exhibited a milder increase (from 0.62 s to 3.86 s) indicating that the system handles large files more efficiently. Compared to Tests 1 and 2, this suggests that performance loss is primarily driven by the number of files (and resulting coordination steps), not by total data size.
 
-Test 3, with ten files of 1 GB each (10 GB total), confirmed near-linear scalability, with elapsed time increasing from 0.62 s to 3.86 s as the cluster expanded from 3 to 8 agents.
-Compared to the previous tests, this result shows that the system checks larger files more efficiently: despite the total dataset size being identical to Tests 1 and 2, the corruption check completes significantly faster than in Test 2 (1 MB files). This indicates that when file sizes increase and file count decreases, the system benefits from reduced management overhead and communication steps, achieving faster integrity verification even for larger individual files.
+In Test 4, with 1,000 files of 150 KB each (150 MB total), the system was evaluated under partial node unavailability. When some agents were offline, execution time increased by roughly 9x (for example, from 3.1 s to 28.2 s with 3 agents). However, the relative slowdown diminished with larger clusters, confirming that Raft's fault-tolerant synchronization mitigates the effects of offline nodes, albeit at a cost in latency.
 
-Test 4, with 1,000 files of 150 KB each (150 MB total), confirmed that the system remains operational under node unavailability: when some agents were offline, execution time rose by roughly 9x for smaller cluster sizes (from 3.1 s to 28.2 s with 3 agents), while the relative impact diminished as the number of agents increased. The additional delays in this scenario can also be attributed in part to Raft consensus checks, which introduce further waiting time when nodes are offline or recovering.
+Finally, Test 5, involving one million files of 4 KB each, measured total
+processing time from 26.31 s to 82.43 s as dataset size grew from 12 GB to 24
+GB. Despite the large number of files, absolute latency grows and the system continues to process data at a predictable rate.
 
-Finally, Test 5, which differs from the previous four tests, involving one million files of 4 KB each, total processing time
-ranged from 26.31 s to 82.43 s as the global dataset grew from 12 GB to 24 GB,
-demonstrating consistent throughput even at extreme file counts.
-
-Overall, the results indicate that the system scales efficiently with both dataset volume and file count, with performance trends showing near-linear growth for large files and super-linear growth for high file counts.
+Overall, the results show that the system is robust but not performance-scalable. It preserves data integrity and correctness under varying workloads and node conditions, but verification time increases disproportionately with the number of agents and files. These findings highlight the trade-off between distributed consistency and performance in consensus-based corruption detection systems.
