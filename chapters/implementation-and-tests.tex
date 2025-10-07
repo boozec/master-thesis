@@ -1,6 +1,7 @@
 \chapter{Implementation and Tests}
 
-This chapter provides a practical overview of the proposed file corruption detection system by presenting a real implementation developed specifically for this work. The implementation consists of a standalone binary application built around the \texttt{mt-rs} library, employing the BLAKE3 cryptographic hash function, the Raft consensus algorithm, and the Reed-Solomon codes.
+This chapter provides a practical overview of the proposed integrity
+verification protocol by presenting a real implementation developed specifically for this work. The implementation consists of a standalone binary application built around the \texttt{mt-rs} library, employing the BLAKE3 cryptographic hash function, the Raft consensus algorithm, and the Reed-Solomon codes.
 
 Rather than including extensive code listings, which would not significantly contribute to the goals of this thesis, the discussion highlights selected code snippets that illustrate how the individual components operate together in a coherent system. Finally, the chapter presents a series of benchmarks designed to evaluate the behaviour of the implementation under various scenarios, such as node failures, varying numbers of agents, and datasets of different sizes and file counts.
 

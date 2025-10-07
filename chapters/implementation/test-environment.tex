@@ -38,7 +38,12 @@ Each test scenario considered four parameters:
 \end{itemize}
 
 All the scenarios consider that some agents, respecting the Reed-Solomon
-requirement, could be offline during the uploads. In these scenarios, the time of shard recovery described in Section~\ref{sec:recovery-of-missing-shards} was included. Once all files had been uploaded, the system was evaluated through the corruption check procedure. The total elapsed time, measured in seconds, was recorded from the initiation of the check until its completion. A test was deemed valid only if the system successfully detected file corruption. Each plotted value represents the average total elapsed time over three independent runs.
+requirement, could be offline during the uploads. In these scenarios, the time
+of shard recovery described in Section~\ref{sec:recovery-of-missing-shards} was
+included. Once all files had been uploaded, the system was evaluated through the
+corruption check procedure. The total elapsed time, measured in seconds, was
+recorded from the initiation of the check until its completion. A test was
+deemed valid only if the system successfully detected data corruption. Each plotted value represents the average total elapsed time over three independent runs.
 
 \paragraph{Test 1: Large files, all agents online}
 

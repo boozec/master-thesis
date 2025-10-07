@@ -1,6 +1,7 @@
 \section{Consensus Protocols}
 
-This section provides background on the consensus protocols that were studied during the internship in order to evaluate how to integrate our Merkle tree file corruption detection system into a distributed setting.  
+This section provides background on the consensus protocols that were studied
+during the internship in order to evaluate how to integrate this Merkle-tree-based integrity verification protocol into a distributed setting.  
 Although corruption detection could be applied in a centralized environment using simple checksums, in a distributed cluster, a consensus algorithm is needed to coordinate nodes and ensure consistent state.  
 
 Several consensus mechanisms were examined, reflecting the long-standing debate between \emph{leader-based} protocols (such as Raft, PBFT, and PB-Raft) and \emph{leaderless} approaches (such as Flutter+Blink). Each design choice has implications for performance, fault tolerance, and implementation complexity.

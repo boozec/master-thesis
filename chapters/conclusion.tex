@@ -1,6 +1,6 @@
 \chapter{Conclusion}
 
-This thesis presented the design and implementation of a Merkle-tree-based integrity verification and repair protocol for geo-distributed storage systems.
+This thesis presented the design and implementation of a Merkle-tree-based integrity verification protocol for geo-distributed storage systems.
 The proposed system integrates Merkle trees, the Raft consensus algorithm, and Reed-Solomon codes to provide a reliable corruption detection mechanism that remains functional even when some agents are temporarily offline.
 
 The developed prototype demonstrated that it is possible to maintain a consistent and verifiable integrity state across distributed agents without relying on full-file scans or constant node availability.
@@ -14,7 +14,7 @@ The system remains functionally correct but becomes slower in larger clusters, p
 Despite this, the proposed architecture fulfills its primary objective: enabling fault-tolerant, verifiable, and consistent corruption detection in distributed environments.
 Its design makes it extensible to new optimisations and deployment models.
 
-\section*{Future Work and Considerations}
+\paragraph{Future Work and Considerations}
 
 Several directions emerge for further research and practical refinement:
 
@@ -48,4 +48,4 @@ Several directions emerge for further research and practical refinement:
 
 In summary, this work shows that a Merkle-tree-based corruption detection system coordinated through Raft can provide strong correctness and resilience guarantees for geo-distributed storage.
 Although performance decreases with larger clusters, the approach remains a robust foundation for future distributed integrity systems.
-With targeted optimisations, this proposed file corruption detection system, could evolve into a practical and efficient solution for production-scale environments such as Cubbit.
+With targeted optimisations, this proposed integrity verification protocol, could evolve into a practical and efficient solution for production-scale environments such as Cubbit.

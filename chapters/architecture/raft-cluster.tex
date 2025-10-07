@@ -1,6 +1,7 @@
 \section{A Raft Cluster for File Uploads} \label{sec:raft-cluster-for-file-uploads}
 
-In Section \ref{sec:raft}, the Raft consensus algorithm was introduced. This section explains its role within the proposed file corruption detection system, focusing on how Raft enables global agreement among agents on the Merkle root hashes associated with different folders.
+In Section \ref{sec:raft}, the Raft consensus algorithm was introduced. This
+section explains its role within the proposed integrity verification protocol, focusing on how Raft enables global agreement among agents on the Merkle root hashes associated with different folders.
 
 As discussed in the previous section, there is no practical distinction between top-level and second-level folder roots: both are stored uniformly. The key requirement is that each agent must be aware of the Merkle root hash of every folder \emph{globally}, not just for its own local filesystem. This consistency is ensured through a Raft cluster, in which all agents act as nodes. Each node maintains a replicated log that functions as a command list of operations for a distributed key/value store, where folder identifiers serve as keys and the corresponding Merkle root hashes serve as values. Ideally, every correct node maintains an identical log, guaranteeing global agreement.
 

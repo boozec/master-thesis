@@ -1,4 +1,8 @@
 \shipout\null
 \chapter*{Sommario}
 \thispagestyle{empty} 
-This thesis wants to show bla bla.
+
+Questa tesi presenta un protocollo di verifica dell'integrità per sistemi di
+archiviazione geo-distribuiti, basato su alberi di Merkle, algoritmo di consenso Raft e codifica Reed-Solomon. Il protocollo consente di verificare l'integrità dei dati in modo efficiente e affidabile anche in presenza di nodi temporaneamente offline, superando i limiti dei tradizionali controlli checksum basati sulla scansione completa dei file.
+
+È stato implementato un prototipo in Rust, capace di generare rapidamente gli hash delle radici degli alberi di Merkle per intere cartelle e coordinare i metadati tramite Raft. Le sperimentazioni mostrano che il protocollo verifica e localizza con affidabilità la corruzione dei dati in diversi scenari, mantenendo la correttezza anche in condizioni di disponibilità parziale del cluster. I risultati evidenziano che un'architettura basata su alberi di Merkle coordinata tramite consenso fornisce una soluzione robusta e tollerante ai guasti, con possibilità di ottimizzazione tramite concorrenza, organizzazione adattiva dei file e deployment su larga scala.

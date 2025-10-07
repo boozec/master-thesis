@@ -1,6 +1,8 @@
 \chapter{Introduction}
 
-This thesis emerged from a practical problem encountered during the development of a modern cloud storage: how can a geo-distributed storage system efficiently detect file corruption without assuming that all nodes are always online? The answer, as explored in this work, lies in rethinking corruption detection through the use of hierarchical data structures and consensus algorithms.
+This thesis emerged from a practical problem encountered during the development
+of a modern cloud storage: how can a geo-distributed storage system efficiently
+detect data corruption without assuming that all nodes are always online? The answer, as explored in this work, lies in rethinking corruption detection through the use of hierarchical data structures and consensus algorithms.
 
 \section{Motivation}
 
@@ -21,7 +23,7 @@ This thesis addresses the need for a corruption detection system that:
 \begin{itemize}
 \item avoids repeated full-file scans by verifying integrity at the folder and sub-folder level;
 \item tolerates offline nodes by storing and synchronizing integrity metadata across the cluster;
-\item integrates with Cubbit’s existing Reed-Solomon codes, ensuring that verification is possible even during partial uploads and recoveries.
+\item integrates with Cubbit's existing Reed-Solomon codes, ensuring that verification is possible even during partial uploads and recoveries.
 \end{itemize}
 
 The central question is: how can a Merkle-tree-based corruption detection system, combined with Raft consensus and compatible with Reed-Solomon codes, provide efficient, scalable, and fault-tolerant integrity verification in a geo-distributed cluster?

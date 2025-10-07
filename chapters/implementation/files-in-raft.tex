@@ -93,7 +93,7 @@ Meanwhile, the bootstrap node must handle these incoming gRPC requests, which is
 
 \paragraph{Handlers for upload and download}
 
-The two gRPC calls \texttt{SendShard} and \texttt{GetShard}, introduced in Listings \ref{code:rpc-send-shard} and \ref{code:download-handler}, are handled by the agents’ gRPC servers, as illustrated in Listings \ref{code:send-shard-server} and \ref{code:get-shard-server}. For simplicity, error handling and some path resolution details are omitted.
+The two gRPC calls \texttt{SendShard} and \texttt{GetShard}, introduced in Listings \ref{code:rpc-send-shard} and \ref{code:download-handler}, are handled by the agents' gRPC servers, as illustrated in Listings \ref{code:send-shard-server} and \ref{code:get-shard-server}. For simplicity, error handling and some path resolution details are omitted.
 
 The key aspect to note is the inner go-function in Listing \ref{code:send-shard-server}, lines 9-28. This function retrieves the top-level and second-level folder roots for the shard. Differently than Figure \ref{fig:sequence-diagram-upload-file}, it then prepares a single gRPC request containing both roots (concatenated; each root is 32 bytes) and sends it to the leader. If the sender itself is the leader, the message is processed locally.
 
