@@ -2,7 +2,19 @@
 \chapter*{Sommario}
 \thispagestyle{empty} 
 
-Questa tesi presenta un protocollo di verifica dell'integrità per sistemi di
-archiviazione geo-distribuiti, basato su alberi di Merkle, algoritmo di consenso Raft e codifica Reed-Solomon. Il protocollo consente di verificare l'integrità dei dati in modo efficiente e affidabile anche in presenza di nodi temporaneamente offline, superando i limiti dei tradizionali controlli checksum basati sulla scansione completa dei file.
+Questa tesi propone un protocollo di verifica dell'integrità per sistemi di
+storage geo-distribuiti, basato su alberi di Merkle, algoritmo di consenso Raft
+e codifica Reed-Solomon. Il protocollo consente di garantire verifiche dei dati
+efficienti e affidabili anche in ambienti in cui i nodi possono essere
+temporaneamente offline, superando i limiti delle tradizionali scansioni di file
+completi basate su checksum.
 
-È stato implementato un prototipo in Rust, capace di generare rapidamente gli hash delle radici degli alberi di Merkle per intere cartelle e coordinare i metadati tramite Raft. Le sperimentazioni mostrano che il protocollo verifica e localizza con affidabilità la corruzione dei dati in diversi scenari, mantenendo la correttezza anche in condizioni di disponibilità parziale del cluster. I risultati evidenziano che un'architettura basata su alberi di Merkle coordinata tramite consenso fornisce una soluzione robusta e tollerante ai guasti, con possibilità di ottimizzazione tramite concorrenza, organizzazione adattiva dei file e deployment su larga scala.
+Un prototipo è stato implementato tramite una libreria Rust dedicata, capace di
+generare in modo efficiente gli hash delle radici degli alberi di Merkle per
+intere cartelle, integrata con Raft per assicurare la coerenza dei metadati tra
+i nodi distribuiti. La sperimentazione dimostra che il protocollo verifica e
+localizza in modo affidabile la corruzione dei dati in diversi scenari,
+mantenendo correttezza anche in caso di disponibilità parziale del cluster. Il
+tempo di verifica, però, aumenta con la dimensione del cluster a causa dei costi di coordinazione e del sovraccarico di rete.
+
+I risultati indicano che un'architettura basata su alberi di Merkle, coordinata tramite consenso, offre una soluzione robusta e tollerante ai guasti per la verifica distribuita dell'integrità dei dati, suggerendo al contempo possibilità di ottimizzazione attraverso concorrenza, organizzazione adattiva dei file e deployment su larga scala.
