@@ -1,27 +1,25 @@
 \chapter{Conclusion}
 
 This thesis presented the design and implementation of a Merkle-tree-based integrity verification protocol for geo-distributed storage systems.
-The proposed system integrates Merkle trees, the Raft consensus algorithm, and Reed-Solomon codes to provide a reliable corruption detection mechanism that remains functional even when some agents are temporarily offline.
+The proposed system integrates Merkle trees, the Raft consensus algorithm, and Reed-Solomon coding to provide a reliable corruption detection mechanism that remains functional even when some agents are temporarily offline.
 
-The developed prototype demonstrated that it is possible to maintain a consistent and verifiable integrity state across distributed agents without relying on full-file scans or constant node availability.
-Raft ensures that integrity metadata is synchronised cluster-wide, while Merkle trees allow hierarchical and efficient integrity checks at the folder or subfolder level.
+The developed prototype demonstrated that it is possible to maintain a consistent and verifiable integrity state across distributed agents without relying on full file scans or constant node availability.
+Raft ensures that integrity metadata is synchronized cluster-wide, while Merkle trees allow hierarchical and efficient integrity checks at the folder or subfolder level.
 
-The experimental results confirmed the correctness and resilience of the
-approach under different scenarios and network conditions.
+The experimental results confirmed the correctness and resilience of the approach under different scenarios and network conditions.
 However, the tests also revealed a clear performance limitation: verification time increases as the number of agents grows, mainly due to consensus and communication overhead.
-The system remains functionally correct but becomes slower in larger clusters, particularly in scenarios with many small files, where metadata synchronisation dominates the cost.
+The system remains functionally correct but becomes slower in larger clusters, particularly in scenarios with many small files, where metadata synchronization dominates the cost.
 
-Despite this, the proposed architecture fulfills its primary objective: enabling fault-tolerant, verifiable, and consistent corruption detection in distributed environments.
-Its design makes it extensible to new optimisations and deployment models.
+Despite this, the proposed architecture fullfils its primary objective: enabling fault-tolerant, verifiable, and consistent corruption detection in distributed environments.
+Its design makes it extensible to new optimizations and deployment models.
 
 \paragraph{Future Work and Considerations}
 
 Several directions emerge for further research and practical refinement:
 
 \begin{itemize}
-    \item \textbf{Adaptive Merkle-tree deployment per customer.}
-    Since corruption checks behave differently depending on filesystem
-    organisation, the system could apply Merkle trees adaptively based on customer usage.
+    \item \textbf{Adaptive Merkle tree deployment per customer.}
+    Since corruption checks behave differently depending on filesystem organization, the system could apply Merkle trees adaptively based on customer usage.
     Some customers store many small files, while others handle few but very large files.
     Maintaining a dedicated filesystem per customer (for each agent) would also improve security and isolation, avoiding shared-state interference between unrelated datasets.
 
@@ -31,7 +29,8 @@ Several directions emerge for further research and practical refinement:
     If corruption checks require hours to complete, the approach could become impractical at large scale; therefore, performance profiling for large clusters is essential.
 
     \item \textbf{Optimizing folder and hash map access.}
-    The use of \texttt{TrieMap}, potentially in a concurrent implementation, could optimise lookup speed for subfolders in \texttt{hashes2} or similar structures, reducing blocking time during verification.
+    The use of \texttt{TrieMap}, potentially in a concurrent implementation,
+        could optimize lookup speed for subfolders in \texttt{hashes2}, reducing blocking time during verification.
 
     \item \textbf{Reducing redundant root retrievals.}
     Some performance gain might be achieved by avoiding unnecessary \emph{get root} operations, retrieving roots randomly or selectively.
@@ -43,9 +42,20 @@ Several directions emerge for further research and practical refinement:
 
     \item \textbf{Deeper folder hierarchies.}
     The current two-level folder model simplifies testing but may limit scalability.
-    Adding additional folder levels could further localise corruption checks and reduce recomputation overhead, potentially improving performance for large and complex filesystems.
+    Adding additional folder levels could further localize corruption checks and reduce recomputation overhead, potentially improving performance for large and complex filesystems.
+
+    \item \textbf{Integration with Cubbit's file versioning system.}
+    Cubbit's versioning mechanism already allows users to restore previous file states.
+    This feature implicitly extends the proposed protocol, enabling a combined
+        repair and verification process: the system can revert to a prior version of a file or folder and then perform a corruption check, providing an additional safeguard against data loss.
+
+    \item \textbf{Folder-level verification granularity.}
+    The current protocol operates at the folder level rather than on individual files.
+    As a result, while it can detect that a folder contains corrupted data, it cannot directly identify which specific file within that folder is affected.
+    Future developments could explore finer-grained verification to pinpoint corrupted files more precisely.
 \end{itemize}
 
-In summary, this work shows that a Merkle-tree-based corruption detection system coordinated through Raft can provide strong correctness and resilience guarantees for geo-distributed storage.
+In summary, this work shows that a Merkle-tree-based integrity verification
+protocol coordinated through Raft can provide strong correctness and resilience guarantees for geo-distributed storage.
 Although performance decreases with larger clusters, the approach remains a robust foundation for future distributed integrity systems.
-With targeted optimisations, this proposed integrity verification protocol, could evolve into a practical and efficient solution for production-scale environments such as Cubbit.
+With targeted optimizations, this proposed integrity verification protocol could evolve into a practical and efficient solution for production-scale environments such as Cubbit.

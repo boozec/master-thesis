@@ -1,7 +1,7 @@
 \chapter{Architecture}
 
- This chapter describes the architecture of the proposed corruption detection system. First, the Rust library developed specifically for this project is introduced, designed to operate efficiently both at the folder level and on individual data items. Then, the organization of the Merkle tree within the system is discussed, including how the agents (also referred to as \textit{nodes}) exchange information through the Raft cluster. Particular attention is given to scenarios in which some agents are temporarily unavailable (during uploads or during corruption checks) and how the system leverages the Raft log to maintain a consistent view of per-agent root hashes. This ensures that corruption verification can proceed safely and correctly, even when some agents lag behind or remain offline, independently of the Reed-Solomon requirement.
+ This chapter describes the architecture of the proposed integrity verification protocol. First, the Rust library developed specifically for this project is introduced, designed to operate efficiently both at the folder level and on individual data items. Then, the organization of the Merkle tree within the system is discussed, including how the agents (also referred to as \textit{nodes}) exchange information through the Raft cluster. Particular attention is given to scenarios in which some agents are temporarily unavailable (during uploads or during corruption checks) and how the system leverages the Raft log to maintain a consistent view of per-agent root hashes. This ensures that corruption verification can proceed safely and correctly, even when some agents lag behind or remain offline, independently of the Reed-Solomon requirement.
 
 \input{chapters/architecture/merkle-tree-library}
-\input{chapters/architecture/file-organisation}
+\input{chapters/architecture/file-organization}
 \input{chapters/architecture/raft-cluster}

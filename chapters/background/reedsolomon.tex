@@ -1,8 +1,8 @@
 \section{Reed-Solomon} \label{sec:reed-solomon}
 
-This section provides background on Reed-Solomon coding to give the reader a clearer picture of Cubbit's infrastructure and the context in which the proposed corruption detection mechanism was tested.
+This section provides background on Reed-Solomon coding to give the reader a clearer picture of Cubbit's infrastructure and the context in which the proposed integrity verification mechanism was tested.
 
-\subsection{Classical Reed-Solomon codes}
+\subsection{Classical Reed-Solomon coding}
 
 Reed-Solomon error correction \cite{reed1960polynomial} is one of the most widely used error correction codes, applied in digital communications, storage systems, and network protocols.
 
@@ -17,7 +17,7 @@ P(x) = m_0 + m_1x + m_2x^2 + \cdots + m_{k-1}x^{k-1}.
 
 This polynomial is evaluated at $n$ distinct points $x_1, x_2, \ldots, x_n$ in $F_q$, producing $n$ encoded symbols. The first $k$ symbols correspond to the original data, while the remaining $n-k$ symbols are redundancy.  
 
-The key property of Reed-Solomon codes is that any subset of $k$ symbols from the $n$ encoded symbols is sufficient to reconstruct the original message using polynomial interpolation (e.g. Lagrange interpolation). This allows recovery even if some symbols are lost or corrupted.
+The key property of Reed-Solomon coding is that any subset of $k$ symbols from the $n$ encoded symbols is sufficient to reconstruct the original message using polynomial interpolation (e.g. Lagrange interpolation). This allows recovery even if some symbols are lost or corrupted.
 
 \subsection{Cubbit's adaptation} \label{sec:reed-solomon-in-cubbit}
 

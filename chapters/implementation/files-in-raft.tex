@@ -1,16 +1,19 @@
 \section{Files in a Raft Cluster}
 
-As discussed in Section \ref{sec:raft-cluster-for-file-uploads}, the system is built upon a Raft cluster integrated with a storage mechanism based on Reed-Solomon codes. To study this integration, a Go\footnote{\url{https://go.dev/}} application was implemented, reconstructing a Cubbit-like infrastructure by layering a Raft cluster on top of Reed-Solomon redundancy. Go was chosen for its gentle learning curve and widespread adoption, including by companies such as Cubbit. Following the common project layout recommended for Go\cite{go-modules-layout} all the developed services are organized within a single module. This structure avoids redundancy, such as duplicating the service message definitions described later. Each service is maintained separately as a distinct binary under the \texttt{cmd/} folder, in accordance with Go best practices.
+As discussed in Section \ref{sec:raft-cluster-for-file-uploads}, the system is built upon a Raft cluster integrated with a storage mechanism based on Reed-Solomon coding. To study this integration, a Go\footnote{\url{https://go.dev/}} application was implemented, reconstructing a Cubbit-like infrastructure by layering a Raft cluster on top of Reed-Solomon redundancy. Go was chosen for its gentle learning curve and widespread adoption, including by companies such as Cubbit. Following the common project layout recommended for Go\cite{go-modules-layout} all the developed services are organized within a single module. This structure avoids redundancy, such as duplicating the service message definitions described later. Each service is maintained separately as a distinct binary under the \texttt{cmd} folder, in accordance with Go best practices.
 
 
 
-To investigate communication patterns between the system components, two service APIs were implemented: a REST API, widely used for web services, and gRPC\footnote{\url{https://grpc.io/}}, developed by Google and based on Protobuf, which allows precise definition of the message types transmitted over the network.
+To investigate the communication patterns between the system components, two service
+APIs were implemented: a REST API, commonly used for web services, and a
+gRPC\footnote{\url{https://grpc.io/}}, developed by Google and based on Protocol
+Buffers (Protobuf), which allows precise definition of the message types transmitted over the network.
 
 Listing \ref{code:protobuf-for-agent} illustrates the Protobuf definitions used by the agents, including messages for both gateway-agent and agent-agent interactions.
 
 The distinctive feature of gRPC is that the Protobuf file can be directly compiled into Go code using a simple CLI, as shown in Listing \ref{code:protobuf-protoc}.
 
-\begin{listing}
+\begin{listing}[H]
 \caption{Protobuf compiler command that generates Go code from the service definition located at \texttt{agent.proto}.}
 \label{code:protobuf-protoc}
 \begin{minted}{shell}
@@ -32,7 +35,7 @@ Together, these files constitute the foundation for both gateway-to-agent and in
 
 \subsection{Gateway service} 
 
-The Gateway acts as the entry point for the user, as illustrated in step 1 of Figure \ref{fig:sequence-diagram-upload-file}. It is exposed via a REST API and manages file uploads and downloads by splitting files into $n+k$ shards using the Reed-Solomon algorithm and distributing them across the agents. The REST interface is intentionally minimal in this prototype, offering only two endpoints: one for uploading and one for downloading files. The upload endpoint requires the local file path and the desired filename, while the download endpoint requires only the filename.
+The Gateway service acts as the entry point for the user, as illustrated in step 1 of Figure \ref{fig:sequence-diagram-upload-file}. It is exposed via a REST API and manages file uploads and downloads by splitting files into $n+k$ shards using the Reed-Solomon algorithm and distributing them across the agents. The REST interface is intentionally minimal in this prototype, offering only two endpoints: one for uploading and one for downloading files. The upload endpoint requires the local file path and the desired filename, while the download endpoint requires only the filename.
 
 Go provides a straightforward mechanism to instantiate a web server, as shown in Listing \ref{code:mux-gateway}. The \texttt{mux} server maps REST paths to functions, referred to as handlers. 
 
@@ -63,7 +66,7 @@ However, this implementation alone is not sufficient. A corresponding gRPC serve
 
 Equally important, though similar in structure to the previously presented \texttt{UploadHandler}, is the \texttt{DownloadHandler}. While not strictly necessary for system testing, it is useful in both real-world scenarios and tests, for example to verify that a downloaded file is not corrupted. A partial implementation is shown in Listing \ref{code:download-handler}.
 
-As with the \texttt{UploadHandler}, certain implementation details are omitted for simplicity, such as how the correct salt is determined for each file and the internal workings of the Reed-Solomon reconstruction algorithm. The \texttt{rpc.GetAllShards} function serves as a wrapper, analogous to \texttt{SendShard} in Listing \ref{code:rpc-send-shard}. Internally, it executes gRPC calls to the \texttt{GetShard} method defined in the Protobuf file (Listing \ref{code:protobuf-for-agent}), the server-side handling of which will be discussed in the following section.
+As with the \texttt{UploadHandler}, certain implementation details are omitted for simplicity, such as how the correct salt is determined for each file and the internal workings of the Reed-Solomon reconstruction algorithm. The \texttt{rpc.GetAllShards} function serves as a wrapper, analogous to \texttt{SendShard} in Listing \ref{code:rpc-send-shard}. Internally, it executes gRPC calls to the \texttt{GetShard} method defined in the Protobuf file (Listing \ref{code:protobuf-for-agent}). The server-side handling will be discussed in the following section.
 
 \newpage
 
@@ -87,7 +90,11 @@ The \texttt{logs} store persists the sequence of Raft log entries, ensuring that
 
 Together, these components enable each agent to participate reliably in the Raft consensus protocol, preserving consistency and fault tolerance across the distributed system.
 
-The reader will notice that the cluster is bootstrapped only within the \texttt{if} statement in lines 24-33 of Listing \ref{code:new-raft-function}. The \texttt{bootstrap} flag is passed when calling \texttt{newRaft} at startup. Importantly, only one node per cluster performs the bootstrap step during initialization. All other agents must join the cluster by sending a \texttt{JoinRaft} request over gRPC, as illustrated in Listing \ref{code:grpc-call-join-request}.
+The reader will notice that the cluster is bootstrapped only within the
+\texttt{if} statement in lines 24-33 of Listing \ref{code:new-raft-function}.
+The \texttt{bootstrap} flag is passed when calling \texttt{newRaft} at startup.
+Importantly, only one node per cluster performs the bootstrap step during
+initialization. All other agents must join the cluster by sending a \texttt{JoinRaft} request over gRPC, as illustrated in Listing \ref{code:grpc-call-join-request}.
 
 Meanwhile, the bootstrap node must handle these incoming gRPC requests, which is possible because every Raft node is also an agent, as shown in Listing \ref{code:grpc-response-join-request}. As always, some details are omitted to have simpler snippets, such as the various error handling.
 
@@ -112,7 +119,9 @@ dispatched using a \texttt{switch} statement on instance's \texttt{Code}.
 
 \paragraph{Acknowledgment}
 
-For simplicity, some details on the handling of the \texttt{AckShard} call on the server side are omitted, including error handling and the explicit check that the current node processing the request is indeed the cluster leader. The server-side implementation is shown in Listing \ref{code:ack-shard}, while Listing \ref{code:raft-method-to-add-log} illustrates how new messages are applied to the Raft log.
+For simplicity, some details on the handling of the \texttt{AckShard} call on the server-side are omitted, including error handling and the explicit check that the current node processing the
+ request is indeed the cluster leader. The server-side implementation is shown in Listing \ref{code:ack-shard}, while Listing \ref{code:raft-method-to-add-log} illustrates how new messages are
+ applied to the Raft log.
 
 The function \texttt{shardAcknoledge} updates the acknowledgment status for a
 given shard using a boolean array, where the $i$-th position corresponds to
@@ -195,7 +204,7 @@ tree creation, as shown in Listing \ref{code:partial-mt-rs-2}. The output in thi
 a boolean value (\texttt{true} or \texttt{false}) indicating whether the proof is valid.  
 
 For completeness, the Go module \texttt{merkletree} provides methods for 
-proof verification and root computation; their prototypes are prototypeslisted in \ref{code:prototypes-merkletree-module}. 
+proof verification and root computation; their prototypes are in Listing \ref{code:prototypes-merkletree-module}. 
 These are thin wrappers that internally call the Rust binary via 
 \texttt{exec.Command} and capture its output. This design avoids the need for 
 complex Go-Rust bindings, while taking advantage of the high-performance Rust 
@@ -204,8 +213,7 @@ logic remains in Rust, whereas the Go application retains a clean and simple
 interface for Merkle tree operations.  
 
 \paragraph{Signal corruptions}
-
-Finally, this paragraph illustrates how the leader signals corruption for a folder
+Finally, this paragraph illustrates how the leader signals data corruption for a folder
 to the other agents in the Raft cluster. In Listing
 \ref{code:command-struct-for-raft}, the reader has already seen the command code
 \texttt{SignalCorruption}, which is used here as the operation code. The
@@ -219,7 +227,7 @@ handling offline agents as illustrated in Figure
 \ref{fig:flow-chart-check-corruption}.
 
 A partial implementation of this flow is presented in Listing
-\ref{code:check-corruption-algorithm}. The maps \texttt{hashes1} and
+\ref{code:check-corruption-algorithm}. The global maps \texttt{hashes1} and
 \texttt{hashes2} store folder names as keys and per-agent hashes as values, and
 can be used as a backup if some agents are offline. If the first retrieved
 \texttt{data} for a top-level folder does not verify against its Merkle proof,

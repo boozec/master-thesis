@@ -100,9 +100,9 @@ As a result, all agents maintain an up-to-date map from folder names to their la
 
 While Figure \ref{fig:sequence-diagram-upload-file} illustrates how uploads are handled, an equally important question remains: how can the system detect corrupted files? This is the purpose of the \emph{Corruption Check} process.
 
-The process, executed at regular intervals for all top-level folders, is initiated by the leader. This responsibility lies with the leader because it is the only agent authorised to append new entries to the log. If corruption is detected, the leader records the result in the Raft log, thereby propagating the information consistently to all other agents.
+The process, executed at regular intervals for all top-level folders, is initiated by the leader. This responsibility lies with the leader because it is the only agent authorized to append new entries to the log. If corruption is detected, the leader records the result in the Raft log, thereby propagating the information consistently to all other agents.
 
-Although earlier sections emphasised that top-level and second-level folders are stored uniformly, a practical distinction emerges during corruption checks. If a top-level folder is verified as intact, there is no need to check its subfolders. This follows from the Merkle tree property: any modification to a leaf propagates upward, changing the root. Thus, an unchanged top-level root implies that all second-level folders beneath it are also intact. Conversely, if a top-level folder's root does not match, the leader must recursively verify all second-level folders belonging to it.
+Although earlier sections emphasized that top-level and second-level folders are stored uniformly, a practical distinction emerges during corruption checks. If a top-level folder is verified as intact, there is no need to check its subfolders. This follows from the Merkle tree property: any modification to a leaf propagates upward, changing the root. Thus, an unchanged top-level root implies that all second-level folders beneath it are also intact. Conversely, if a top-level folder's root does not match, the leader must recursively verify all second-level folders belonging to it.
 
 In the best case, only the top-level folders need to be examined (a maximum of 256 keys, $16^2$). In the worst case, when every top-level folder fails verification, all second-level folders must also be checked (up to 65536 keys, $16^4$). This scenario corresponds to widespread corruption, where each top-level folder contains at least one corrupted file.
 
@@ -190,7 +190,7 @@ agent_roots = {
 
 It is important to note that root hashes are stored at the \emph{folder} level, not per file. As a result, \texttt{agent\_roots[<some\_folder>]} may contain entries that are not perfectly aligned across agents. For example, Agents 1 and 2 may have already uploaded ten files into a folder, while Agent 3, having been offline, may only have one file in the same folder.  
 
-This apparent asymmetry does not compromise correctness. The reason is that \texttt{roots[<some\_folder>]} is computed as a Merkle root over the entire array \texttt{agent\_roots[<some\_folder>]}. Even if one agent's contribution lags behind, the global root still represents a consistent snapshot of the folder state across all agents. During verification, the Merkle proof ensures that each agent's current hash (or stored historical hash, if offline) matches the position it contributed to in the global root.  
+This apparent asymmetry does not compromize correctness. The reason is that \texttt{roots[<some\_folder>]} is computed as a Merkle root over the entire array \texttt{agent\_roots[<some\_folder>]}. Even if one agent's contribution lags behind, the global root still represents a consistent snapshot of the folder state across all agents. During verification, the Merkle proof ensures that each agent's current hash (or stored historical hash, if offline) matches the position it contributed to in the global root.  
 
 \paragraph{Agent offline during upload}
 
@@ -198,9 +198,9 @@ If an agent is offline during an upload, the system can still guarantee correctn
 
 If an agent was offline during an upload, its entry in the per-agent array remains empty (or unedited). Thanks to the Raft log, these arrays are consistently replicated across all agents. Because the system does not modify the entry corresponding to the offline agent, the Merkle root computed in \texttt{roots} correctly reflects the full folder state, including the filesystem status of the offline agent. Therefore, the global Merkle root remains consistent even if some agents are temporarily unavailable.
 
-When the offline agent later rejoins, it synchronises its metadata by replaying the Raft log. However, it does not automatically reconstruct the shards it missed during downtime. During a corruption check, the leader queries the folder root hashes from all agents. For an agent that was previously offline, the stored value in \texttt{agent\_roots} is exactly what the leader expects. Thus, the check does not fail: the Merkle root returned by the previously offline agent is consistent with the snapshot that the leader uses for verification, assuming no corruption has occurred.
+When the offline agent later rejoins, it synchronizes its metadata by replaying the Raft log. However, it does not automatically reconstruct the shards it missed during downtime. During a corruption check, the leader queries the folder root hashes from all agents. For an agent that was previously offline, the stored value in \texttt{agent\_roots} is exactly what the leader expects. Thus, the check does not fail: the Merkle root returned by the previously offline agent is consistent with the snapshot that the leader uses for verification, assuming no corruption has occurred.
 
-This reasoning naturally generalises to the case where up to $k$ agents are offline at the same time: as long as at least $n$ agents remain available, the system continues to satisfy the Reed-Solomon requirement.
+This reasoning naturally generalizes to the case where up to $k$ agents are offline at the same time: as long as at least $n$ agents remain available, the system continues to satisfy the Reed-Solomon requirement.
 
 \paragraph{Agents offline during corruption check}
 

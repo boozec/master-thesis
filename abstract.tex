@@ -3,10 +3,10 @@
 \thispagestyle{empty}
 
 This thesis presents an integrity verification protocol for geo-distributed storage that integrates Merkle trees, Raft consensus, and Reed-Solomon erasure coding.
-It addresses the need for efficient and reliable data integrity verification in environments where nodes may be temporarily offline, overcoming the limitations of traditional checksum-based full-file scans.
+It addresses the need for efficient and reliable data integrity verification in environments where nodes may be temporarily offline, overcoming the limitations of traditional checksum-based full file scans.
 
 A prototype was implemented using a purpose-built Rust library to efficiently generate Merkle tree root hashes for entire folders, combined with Raft to ensure consistent metadata coordination across distributed agents.
-Experimental evaluation demonstrates that the protocol reliably verifies and localises data corruption across various scenarios and node conditions, maintaining correctness even under partial cluster availability.
+Experimental evaluation demonstrates that the protocol reliably verifies and localizes data corruption across various scenarios and node conditions, maintaining correctness even under partial cluster availability.
 Verification time, however, increases with cluster size due to coordination and network overhead.
 
-These results indicate that a Merkle-tree-based architecture coordinated through consensus provides a robust and fault-tolerant foundation for distributed integrity verification, while also suggesting avenues for optimisation through concurrency, adaptive file organisation, and large-scale deployment.
+These results indicate that a Merkle-tree-based architecture coordinated through consensus provides a robust and fault-tolerant foundation for distributed integrity verification, while also suggesting avenues for optimization through concurrency, adaptive file organization, and large-scale deployment.

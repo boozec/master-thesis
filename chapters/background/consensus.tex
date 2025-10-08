@@ -9,7 +9,7 @@ Several consensus mechanisms were examined, reflecting the long-standing debate 
 \subsection{Raft} \label{sec:raft}
 
 Raft \cite{raft} is a consensus protocol designed to be understandable and practical, and it has become widely adopted in distributed systems such as \texttt{etcd} \cite{etcd-raft} and TiKV \cite{tikv-raft}.
-It tolerates \emph{crash faults}, but not Byzantine behaviour \cite{lamport1972byzantine}.
+It tolerates \emph{crash faults}, but not Byzantine behavior \cite{lamport1972byzantine}.
 
 Each server on a Raft cluster is modelled as a finite state machine with three possible states:
 \begin{itemize}
@@ -50,7 +50,7 @@ They require at least $5f+1$ servers to tolerate $f$ Byzantine faults.
 
 Flutter uses a betting mechanism where clients attach timestamps (bets) to messages. Servers then order messages according to these bets, ensuring global consistency without requiring a centralized leader.  
 
-This makes Flutter+Blink interesting for highly adversarial settings, as they are leaderless, resilient to Byzantine behaviour and even quantum-attack resistant (due to the absence of signatures). However, the $5f+1$ replication requirement can be costly in practice.
+This makes Flutter+Blink interesting for highly adversarial settings, as they are leaderless, resilient to Byzantine behavior and even quantum-attack resistant (due to the absence of signatures). However, the $5f+1$ replication requirement can be costly in practice.
 
 \subsection{Practical Byzantine Fault Tolerance (PBFT)}
 
@@ -79,7 +79,7 @@ Key features of PB-Raft include:
 \begin{itemize}
     \item \textbf{BLS signatures \cite{boneh2001short}:} Allow short, aggregable multi-signatures that improve efficiency in log replication.
     \item \textbf{PageRank-inspired leader election:} Nodes are ranked by a probability score. Nodes with higher scores use shorter timeouts, balancing fairness and responsiveness.
-    \item \textbf{Semi-synchronous model:} Assumes bounded network delays while tolerating Byzantine behaviour.
+    \item \textbf{Semi-synchronous model:} Assumes bounded network delays while tolerating Byzantine behavior.
 \end{itemize}
 
 Compared to PBFT, PB-Raft reduces message complexity by adopting Raft's two-phase replication approach while retaining Byzantine resilience.  

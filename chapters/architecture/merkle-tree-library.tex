@@ -1,6 +1,7 @@
 \section{Merkle Tree Library} \label{sec:merkle-tree-library}
 
-As discussed in Section \ref{section:merkle-trees}, the corruption detection system relies fundamentally on the Merkle tree data structure. Despite the widespread use of Merkle trees in the literature and in applications such as blockchains, there are relatively few general-purpose and reusable libraries available online. This is largely because implementations are often developed \textit{ad hoc}, tailored to the needs of a specific infrastructure or application domain.
+As discussed in Section \ref{section:merkle-trees}, the integrity verification
+protocol relies fundamentally on the Merkle tree data structure. Despite the widespread use of Merkle trees in the literature and in applications such as blockchains, there are relatively few general-purpose and reusable libraries available online. This is largely because implementations are often developed \textit{ad hoc}, tailored to the needs of a specific infrastructure or application domain.
 
 To overcome this limitation, a dedicated library was developed in Rust\footnote{\url{https://www.rust-lang.org}}, named \texttt{mt-rs}. The library is distributed under a BSD-3 Licence on Crates.io\footnote{\url{https://crates.io/crates/mt-rs}}, with its source code publicly available at \url{https://github.com/boozec/mt}.
 
@@ -27,7 +28,7 @@ impl Hasher for FooHasher {
 \end{listing}
 
 
-The library provides three default hashers: \texttt{SHA256Hasher}, \texttt{Keccak256Hasher}, and \texttt{Blake3Hasher}. They correspond to the functions analysed in Section \ref{sec:cryptopgrahic-hash-functions}. 
+The library provides three default hashers: \texttt{SHA256Hasher}, \texttt{Keccak256Hasher}, and \texttt{Blake3Hasher}. They correspond to the functions analyzed in Section \ref{sec:cryptopgrahic-hash-functions}. 
 
 \paragraph{Tree construction}
 A Merkle tree is represented by the structure shown in Listing \ref{code:struct_merkletree}. It can be instantiated either from raw in-memory data using the \texttt{new} method or from the contents of files and folders using the \texttt{from\_paths} method (Listing \ref{code:new_and_from_paths_prototypes}). This dual approach supports both synthetic testing and real-world scenarios, such as integrity verification of storage systems, by avoiding repeated disk reads.
