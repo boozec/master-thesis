@@ -61,7 +61,7 @@ It is important to clarify, however, that the diagrams so far represent \emph{di
 
 If the leaves of a Merkle tree correspond to individual file blocks or shards, then a single root hash can represent the entire \texttt{ff} folder. Alternatively, smaller Merkle trees can be built independently for each subfolder. For instance, in Figure \ref{fig:file-organization-example-in-tree-2}, one could compute four Merkle root hashes for the second-level folders and one root hash for the top-level folder \texttt{ff}.
 
-This arrangement, referred to here as a \emph{Merkle tree forest}, allows up to 256 top-level folders. Since only lowercase hexadecimal strings are used, ensuring compatibility with both case-sensitive and case-insensitive filesystems, the range spans from \texttt{00/} to \texttt{ff/}. Each top-level folder can contain up to 256 second-level folders, as the namespace is determined by four hexadecimal characters. Dividing the data into smaller trees is crucial for scalable and efficient verification, as will be detailed in the following section.
+This arrangement, referred to here as a \emph{Merkle tree forest}, allows up to 256 top-level folders. Since only lowercase hexadecimal strings are used, ensuring compatibility with both case-sensitive and case-insensitive filesystems, the range spans from \texttt{00} to \texttt{ff}. Each top-level folder can contain up to 256 second-level folders, as the namespace is determined by four hexadecimal characters. Dividing the data into smaller trees is crucial for scalable and efficient verification, as will be detailed in the following section.
 
 \subsection{Storing different Merkle trees for each agent}
 
@@ -79,7 +79,8 @@ The global root of the entire filesystem is avoided because it is too expensive 
 
 Instead, the system leverages intermediate Merkle trees at the \emph{folder levels}. These allow integrity verification to be performed at different granularities: either locally within a subfolder or globally within a top-level folder, without the overhead of recalculating the root hash for the entire agent's filesystem.
 
-Figure \ref{fig:merkle-tree-filesystem-for-3-agents} illustrates an example of this organization for a Reed-Solomon configuration with $n=2, k=1$. In this example, the top-level and second-level folders are highlighted with lighter and darker colours, respectively.
+Figure \ref{fig:merkle-tree-filesystem-for-3-agents} illustrates an example of this organization for a Reed-Solomon configuration with $n=2, k=1$. In this example, the top-level and second-level folders are highlighted with lighter and darker colors, respectively.
+
 
 For each top-level folder, every agent computes and stores the Merkle root hash obtained from a Merkle tree whose leaves correspond to the \emph{terminal files}. The same procedure is applied to second-level folders. For example, in Figure \ref{fig:merkle-tree-filesystem-for-3-agents}, Agent 1 computes and stores the Merkle root hashes of \texttt{fe}, \texttt{ff}, \texttt{fe/2d}, \texttt{ff/4c}, and \texttt{ff/6d}. Agents 2 and 3 follow the same procedure, maintaining the root hashes corresponding to their respective local filesystems.
 

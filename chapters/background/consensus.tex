@@ -27,7 +27,8 @@ In Figure \ref{fig:raft-participants}, the three server states are illustrated u
     \label{fig:raft-participants}
 \end{figure}
 
-Leader election in Raft is randomized: followers start an election if they do not receive a heartbeat in a randomized timeout window (e.g., 150--300 ms).  
+Leader election in Raft is randomized: followers start an election if they do
+not receive a heartbeat in a randomized timeout window (e.g., 150-300 ms).  
 Candidates send \texttt{RequestVote} messages to all nodes, including their last log index and term, to ensure that outdated nodes cannot become leader.  
 If a candidate obtains a majority of votes, it becomes the leader. Otherwise, it retries after another randomized timeout.  
 
@@ -77,9 +78,9 @@ PB-Raft \cite{shi2025pb} is a recent proposal that aims to combine the strengths
 
 Key features of PB-Raft include:
 \begin{itemize}
-    \item \textbf{BLS signatures \cite{boneh2001short}:} Allow short, aggregable multi-signatures that improve efficiency in log replication.
-    \item \textbf{PageRank-inspired leader election:} Nodes are ranked by a probability score. Nodes with higher scores use shorter timeouts, balancing fairness and responsiveness.
-    \item \textbf{Semi-synchronous model:} Assumes bounded network delays while tolerating Byzantine behavior.
+    \item \textbf{BLS signatures \cite{boneh2001short}.} Allow short, aggregable multi-signatures that improve efficiency in log replication.
+    \item \textbf{PageRank-inspired leader election.} Nodes are ranked by a probability score. Nodes with higher scores use shorter timeouts, balancing fairness and responsiveness.
+    \item \textbf{Semi-synchronous model.} Assumes bounded network delays while tolerating Byzantine behavior.
 \end{itemize}
 
 Compared to PBFT, PB-Raft reduces message complexity by adopting Raft's two-phase replication approach while retaining Byzantine resilience.  
@@ -89,8 +90,8 @@ Compared to PBFT, PB-Raft reduces message complexity by adopting Raft's two-phas
 In summary:
 \begin{itemize}
     \item \textbf{Raft} is practical, simple and widely adopted for crash fault tolerance.
-    \item \textbf{PBFT} provides strong Byzantine fault tolerance but at high communication cost.
     \item \textbf{Flutter+Blink} achieves leaderless, low-latency Byzantine consensus but requires many servers.
+    \item \textbf{PBFT} provides strong Byzantine fault tolerance but at high communication cost.
     \item \textbf{PB-Raft} is a hybrid approach that adapts Raft for Byzantine environments.
 \end{itemize}
 

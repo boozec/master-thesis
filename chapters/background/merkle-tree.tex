@@ -21,7 +21,7 @@ Given a cryptographic hash function $f: \{0,1\}^\star \mapsto \{0,1\}^n$, the re
 The root node of the tree, known as the \emph{Merkle root}, serves as a compact commitment to all data contained in the leaves. Because hashes propagate upwards, even a single-bit modification in any leaf causes a change in the root hash. This property makes Merkle trees powerful tools for integrity verification in large, distributed datasets.
 
 
-\subsection{Merkle Proofs}
+\subsection{Merkle proofs}
 
 One of the most powerful features of Merkle trees is the ability to prove that a given piece of data is part of a larger set, without revealing or recomputing the entire dataset.  
 Given a Merkle tree leaf, one can reconstruct the root by traversing the path to the root and successively combining the node with its siblings.  
@@ -89,13 +89,13 @@ $current \gets i$\;
     $current \gets \lfloor current / 2 \rfloor$
 }
 \Return{$\pi$}\;
-\caption{Merkle Proof Generation}
+\caption{Merkle proof generation}
 \label{algo:merkle-proof-generation}
 \end{algorithm}
 
 \vspace{1em}
 
-Merkle Proof Verification algorithm for a proof $\pi$ is illustrated in Algorithm \ref{algo:merkle-proof-verification}.
+Merkle proof verification algorithm for a proof $\pi$ is illustrated in Algorithm \ref{algo:merkle-proof-verification}.
 
  \vspace{1em}
 
@@ -114,7 +114,7 @@ $h \gets f(d)$\;
     }
 }
 \Return{$h = R$}\;
-\caption{Merkle Proof Verification}
+\caption{Merkle proof verification}
 \label{algo:merkle-proof-verification}
 \end{algorithm}
 
@@ -139,7 +139,7 @@ Merkle trees are widely used in distributed systems to ensure data integrity:
 
 \subsection{Alternative Implementations}
 
-In the literature, several advanced variants of Merkle trees exist, such as XMSS (eXtended Merkle Signature Scheme) \cite{buchmann2011xmss} and the BDS (Buchmann-Dahmen-Szydlo) traversal algorithm \cite{buchmann2008merkle}. These schemes were developed in the context of \emph{post-quantum cryptography} and digital signatures. XMSS is standardised by the IETF (RFC 8391) and provides strong security guarantees by organizing one-time signatures (OTS) under a large Merkle tree, where the root of the tree serves as the public key.  
+In the literature, several advanced variants of Merkle trees exist, such as XMSS (eXtended Merkle Signature Scheme) \cite{buchmann2011xmss} and the BDS (Buchmann-Dahmen-Szydlo) traversal algorithm \cite{buchmann2008merkle}. These schemes were developed in the context of \emph{post-quantum cryptography} and digital signatures. XMSS is standardized by the IETF (RFC 8391) and provides strong security guarantees by organizing one-time signatures (OTS) under a large Merkle tree, where the root of the tree serves as the public key.  
 
 In XMSS, to sign a message $i$, the authentication path of the $i$-th leaf is needed. In a native way, recomputing this path would require rebuilding large parts of the tree, which becomes impractical when the tree contains millions of leaves. To solve this, the BDS traversal algorithm was introduced: it incrementally maintains and updates the authentication path in $O(h)$ time and $O(h)$ space (where $h = \log_2(n)$ is the tree height). This makes XMSS practical for very large trees.
 

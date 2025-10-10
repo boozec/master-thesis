@@ -32,13 +32,17 @@ The central question is: how can a Merkle-tree-based integrity verification prot
 
 The primary objective of this thesis is to design and evaluate a integrity verification protocol for distributed storage clusters that is both efficient and resilient to node failures. Unlike checksum-based approaches, the proposed system leverages:  
 \begin{itemize}
-    \item an ad-hoc Merkle tree library optimized for folder-based hierarchies;  
-    \item coordination via Raft consensus to ensure consistent integrity metadata across nodes;  
+    \item an ad hoc Merkle tree library optimized for folder-based hierarchies;  
+    \item coordination via Raft consensus to ensure consistent integrity
+        metadata across nodes;  
     \item integration with Cubbit's Reed-Solomon-based infrastructure to handle partial uploads and recoveries;  
     % \item evaluation of different cryptographic hash functions (SHA-256 vs BLAKE3) for performance trade-offs.  
 \end{itemize}
 
-The overarching goal is to demonstrate that an optimized, folder-oriented Merkle tree, combined with consensus, can provide a scalable, fault-tolerant, and efficient alternative to classical checksum-based corruption detection in geo-distributed clusters.
+The overarching goal is to demonstrate that an optimized, folder-oriented Merkle
+tree, combined with consensus, can provide a scalable, fault-tolerant, and
+efficient alternative to classical checksum-based corruption detection in
+geo-distri-\ buted clusters.
 
 
 \section{Structure of the Document}
@@ -51,4 +55,4 @@ Chapter 3 describes the architecture of the proposed integrity verification prot
 
 Chapter 4 presents the prototype implementation and the experimental evaluation. The system is tested under different scenarios, varying both the number of agents in the cluster and the number of files stored per agent. Controlled corruption is deliberately injected into the data, and the evaluation measures the elapsed time between the initiation of a corruption check and the correct identification of the corrupted file.
 
-Chapter 5 concludes the thesis by summarising the main contributions, highlighting limitations, and outlining possible directions for future work.
+Chapter 5 concludes the thesis by summarizing the main contributions, highlighting limitations, and outlining possible directions for future work.

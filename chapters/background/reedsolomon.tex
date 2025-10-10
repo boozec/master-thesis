@@ -21,6 +21,8 @@ The key property of Reed-Solomon coding is that any subset of $k$ symbols from t
 
 \subsection{Cubbit's adaptation} \label{sec:reed-solomon-in-cubbit}
 
-Cubbit employs Reed-Solomon erasure coding to store files reliably across multiple nodes in its geo-distributed network. Unlike the classical definition, in Cubbit's implementation the total number of shards stored across the network is $n+k$, where $n$ denotes the number of data shards and $k$ the number of redundancy shards.
+Cubbit employs Reed-Solomon coding to store files reliably across multiple nodes in its geo-distributed network. Unlike the classical definition, in Cubbit's implementation the total number of shards stored across the network is $n+k$, where $n$ denotes the number of data shards and $k$ the number of redundancy shards.
 
-For example, with three agents, a file could be split into three data shards, distributed one per agent. If the system is configured with $k=1$, only $n=2$ shards are required to reconstruct the original file. Thus, even if one agent is offline, the user can still recover the file successfully.  
+For example, with three nodes, a file could be split into three data shards,
+distributed one per node. If the system is configured with $k=1$, only $n=2$
+shards are required to reconstruct the original file. Thus, even if one node is offline, the user can still recover the file successfully.  

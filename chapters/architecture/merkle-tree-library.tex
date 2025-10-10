@@ -34,7 +34,7 @@ The library provides three default hashers: \texttt{SHA256Hasher}, \texttt{Kecca
 A Merkle tree is represented by the structure shown in Listing \ref{code:struct_merkletree}. It can be instantiated either from raw in-memory data using the \texttt{new} method or from the contents of files and folders using the \texttt{from\_paths} method (Listing \ref{code:new_and_from_paths_prototypes}). This dual approach supports both synthetic testing and real-world scenarios, such as integrity verification of storage systems, by avoiding repeated disk reads.
 
 \begin{listing}[!ht]
-\caption{\texttt{MerkleTree} structure definition, where \texttt{Node} is an ad-hoc structure that includes additional information and methods.}
+\caption{\texttt{MerkleTree} structure definition, where \texttt{Node} is an ad hoc structure that includes additional information and methods.}
 \label{code:struct_merkletree}
 \begin{minted}[linenos,fontsize=\footnotesize]{Rust}
 pub struct MerkleTree {

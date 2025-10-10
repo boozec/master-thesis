@@ -39,7 +39,7 @@ BLAKE3 employs a binary tree structure that splits the input into 1024-byte chun
 
 BLAKE3 achieves significantly better performance than both SHA-256 and SHA-512 on modern 64-bit architectures. Within the SHA family, SHA-512 generally outperforms SHA-256 on 64-bit machines \cite{gueron2011sha}. 
 
-BLAKE3's superior performance stems from its fundamentally different design philosophy. Unlike the inherently sequential SHA algorithms, its tree-based parallelism, fewer rounds, more efficient mixing function, and better cache locality enable it to outperform both SHA variants regardless of word size alignment considerations.
+BLAKE3's superior performance derives from its fundamentally different design philosophy. Unlike the inherently sequential SHA algorithms, its tree-based parallelism, fewer rounds, more efficient mixing function, and better cache locality enable it to outperform both SHA variants regardless of word size alignment considerations.
 
 It provides a 128-bit security level and a 256-bit output.
 
@@ -51,7 +51,7 @@ Formally, for a message of length $n > 1024$ bytes, the left subtree covers a nu
 
 The right subtree consists of the remainder. BLAKE3 supports input of any length $0 \leq \ell < 2^{64}$.
 
-This section does not aim to present the full specification of BLAKE3 (its compression function or operational modes) but rather to highlight its practical performance advantages.
+This section does not aim to describe the full BLAKE3 specification (e.g., its compression function or internal modes of operation), but rather to emphasize its practical performance benefits in the context of this work.
 
 \subsubsection{Performance}
 
@@ -74,7 +74,8 @@ with a 16~KiB input, using a single thread. Higher values (MiB/s) indicate faste
     \label{fig:blak3-speed}
 \end{figure}
 
-In the context of this thesis, benchmarks were also conducted using the \texttt{mt-rs}\footnote{\url{https://crates.io/crates/mt-rs}} library to evaluate Merkle tree creation and proof generation under these three different cryptographic hash functions.  
+In the context of this thesis, benchmarks were also conducted using the
+\texttt{mt-rs}\footnote{\url{https://crates.io/crates/mt-rs}} library to evaluate Merkle tree creation and proof generation under these three different cryptographic hash functions.  
 For each function, three tests were performed with node data sizes of 5 MB, 10 MB and 15 MB.  
 In each test, the benchmark measures the time required to construct the authentication path for a leaf, verify the corresponding root from that path, and repeat this process for all 10 nodes of the Merkle tree.
 
