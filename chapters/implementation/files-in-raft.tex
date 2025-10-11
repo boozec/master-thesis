@@ -90,7 +90,7 @@ The \texttt{logs} store persists the sequence of Raft log entries, ensuring that
 
 Together, these components enable each agent to participate reliably in the Raft consensus protocol, preserving consistency and fault tolerance across the distributed system.
 
-The reader will notice that the cluster is bootstrapped only within the
+The reader may notice that the cluster is bootstrapped only within the
 \texttt{if} statement in lines 24-33 of Listing \ref{code:new-raft-function}.
 The \texttt{bootstrap} flag is passed when calling \texttt{newRaft} at startup.
 Importantly, only one node per cluster performs the bootstrap step during

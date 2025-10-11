@@ -7,7 +7,7 @@ As discussed in the previous section, there is no practical distinction between 
 
 In practice, the Raft log is a sequence of messages broadcast by the leader to all nodes. Since the Raft cluster includes all agents, the terms \emph{node} and \emph{agent} can be used interchangeably. If an agent is online, it is part of the Raft cluster as well.
 
-The log allows each agent to reconstruct "two levels" of a map, corresponding to the two levels of folder roots. Whenever a node restarts or rejoins the cluster, the log is replayed to restore state consistency. For example, in the scenarios illustrated in Figures \ref{fig:merkle-tree-first-level-of-saved-hashes} and \ref{fig:merkle-tree-second-level-of-saved-hashes}, each agent would maintain a single map such as:
+The log allows each agent to reconstruct \emph{two levels} of a map, corresponding to the two levels of folder roots. Whenever a node restarts or rejoins the cluster, the log is replayed to restore state consistency. For example, in the scenarios illustrated in Figures \ref{fig:merkle-tree-first-level-of-saved-hashes} and \ref{fig:merkle-tree-second-level-of-saved-hashes}, each agent would maintain a single map such as:
 
 \begin{listing}[H]
 \caption{Example of a map of Merkle root hashes. Whether the key represents a top-level or second-level folder is irrelevant for now.}
@@ -39,6 +39,8 @@ Figure \ref{fig:sequence-diagram-upload-file} shows the sequence of events when 
 \end{enumerate}
 
 As a result, all agents maintain an up-to-date map from folder names to their latest root hashes, as illustrated in Listing \ref{code:map-of-roots}.
+
+In contrast to the illustration in Figure \ref{fig:sequence-diagram-upload-file}, in practice the leader updates the global root hashes incrementally, immediately after each hash is received in step 3. Following the reception of the first update (3a), the leader computes the corresponding root values and appends them to the Raft log; the same process occurs after (3b) and again after (3c). Since Raft operates under a leader-based architecture, the exact order and timing of these messages is inconsequential: once all updates have been processed, all agents in the cluster will converge to an identical final state. This incremental propagation is crucial in scenarios involving partial uploads, which will be examined in the following sections.
 
 \setcounter{enumi}{0}
 
@@ -110,8 +112,8 @@ Figure \ref{fig:sequence-diagram-check-corruptions} illustrates the process for 
 
 \renewcommand{\labelenumi}{\textbf{(\theenumi)}}
 \begin{enumerate}
-    \item The leader queries $n+k$ agents for the Merkle root hash of a given top-level folder (e.g., \texttt{ff}). It then applies the Merkle proof verification procedure, comparing the collected root hashes against the previously stored root (e.g. \texttt{roots["ff"]}).
-    \item The leader appends the result of this verification to the Raft log, broadcasting whether the folder is corrupted. If the folder is marked as corrupted, the process is recursively repeated for all of its second-level subfolders (e.g. \texttt{ff/4c} and \texttt{ff/6d}).
+    \item The leader queries $n+k$ agents for the Merkle root hash of a given top-level folder (e.g., \texttt{ff}). It then applies the Merkle proof verification procedure, comparing the collected root hashes against the previously stored root (e.g., \texttt{roots["ff"]}).
+    \item The leader appends the result of this verification to the Raft log, broadcasting whether the folder is corrupted. If the folder is marked as corrupted, the process is recursively repeated for all of its second-level subfolders (e.g., \texttt{ff/4c} and \texttt{ff/6d}).
 \end{enumerate}
 
 As a result, all agents share a consistent view of which folders are marked as corrupted. A top-level folder is corrupted if at least one of its subfolders is corrupted.
@@ -127,8 +129,8 @@ As a result, all agents share a consistent view of which folders are marked as c
 
     \begin{umlcall}[op=(1a) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}]{Agent 1}{Agent 1}
     \end{umlcall}
-      
-    \begin{umlcall}[op=(1b) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}{Agent 1}{Agent 2}
+
+    \begin{umlcall}[op=(1b) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}]{Agent 1}{Agent 2}
     \end{umlcall}
 
     \begin{umlcall}[op=(1c) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}]{Agent 1}{Agent 3}
@@ -154,7 +156,7 @@ To mitigate these cases, the data structures introduced in Listing \ref{code:map
 \item \textbf{agent\_roots}: a map from folder identifiers to the set of per-agent root hashes. Each value explicitly tracks the current Merkle root hash for the corresponding folder, stored in an array indexed from $1$ to $n+k$.
 \end{itemize}
 
-If an agent was offline during an upload, its entry in the array remains empty for a new entry or unedited for an older one. Thanks to the Raft log, these per-agent arrays are consistently replicated across all agents. This ensures that even if a leader crashes and a new leader is elected, the corruption check phase remains unaffected.
+If an agent was offline during an upload, its entry in the array remains empty for a new entry or unedited for an older one. Thanks to the Raft log, these per-agent arrays are consistently replicated across all agents. This ensures that even if a leader crashes and a new leader is elected, the Corruption Check phase remains unaffected.
 
 An example is shown in Listing \ref{code:map-of-roots-2}, where Agent 3 was offline during certain uploads. In this case, some entries of the \texttt{roots} map are computed using only two leaves, since the third leaf in the corresponding \texttt{agent\_roots} entries is \texttt{nil}.
 
@@ -190,7 +192,7 @@ agent_roots = {
 
 It is important to note that root hashes are stored at the \emph{folder} level, not per file. As a result, \texttt{agent\_roots[<some\_folder>]} may contain entries that are not perfectly aligned across agents. For example, Agents 1 and 2 may have already uploaded ten files into a folder, while Agent 3, having been offline, may only have one file in the same folder.  
 
-This apparent asymmetry does not compromize correctness. The reason is that \texttt{roots[<some\_folder>]} is computed as a Merkle root over the entire array \texttt{agent\_roots[<some\_folder>]}. Even if one agent's contribution lags behind, the global root still represents a consistent snapshot of the folder state across all agents. During verification, the Merkle proof ensures that each agent's current hash (or stored historical hash, if offline) matches the position it contributed to in the global root.  
+This apparent asymmetry does not compromize correctness. The reason is that \texttt{roots[<some\_folder>]} is computed as a Merkle root over the entire array \texttt{agent\_roots[<some\_folder>]}. Even if one agent lags behind, the global root still represents a consistent snapshot of the folder state across all agents. During verification, the Merkle proof ensures that each agent's current hash (or stored historical hash, if offline) matches the position it contributed to in the global root.  
 
 \paragraph{Agent offline during upload}
 
