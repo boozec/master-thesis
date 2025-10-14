@@ -1,0 +1,56 @@
+\documentclass{beamer}
+\usetheme{Copenhagen}
+\usecolortheme{beaver}
+\beamertemplatenavigationsymbolsempty
+\makeatletter
+\setbeamertemplate{footline}{}
+\makeatother
+
+\definecolor{unibored}{RGB}{187,46,41}
+\setbeamercolor{title}{fg=unibored}
+\setbeamercolor{beamercolorbox}{fg=unibored}
+
+\setbeamertemplate{title page}{
+    \vfill
+    \begin{center}
+        {\usebeamerfont{title}\usebeamercolor[fg]{title}\inserttitle\par}
+    \end{center}
+
+    \vfill
+
+    \begin{center}
+        {\usebeamerfont{author}\insertauthor\par}
+        \vspace{0.2cm}
+        {\usebeamerfont{institute}\insertinstitute\par}
+        \vspace{0.5cm}
+        {\usebeamerfont{date}\insertdate\par}
+    \end{center}
+}
+
+\title{Merkle-tree-based integrity verification protocol for geo-distributed storage
+systems}
+
+\author{Santo Cariotti}
+
+\institute{Alma Mater Studiorum\\ Università di Bologna}
+\date{October 30, 2025}
+
+
+\usepackage{listings}
+
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit}
+\usetikzlibrary{shapes.geometric}
+\usepackage[ruled,linesnumbered,vlined]{algorithm2e}
+
+\begin{document}
+\frame{\titlepage}
+
+\input{content}
+\input{problem}
+\input{cubbit-env}
+\input{solution}
+\input{background}
+
+\end{document}

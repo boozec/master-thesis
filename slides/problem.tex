@@ -1,0 +1,58 @@
+\begin{frame}{Problem}
+Given a filesystem, how can I be sure that every file keeps integrity?
+
+\begin{center}
+    \begin{tikzpicture}
+        % 1. Include your image in a node
+        \node[anchor=south west,inner sep=0] (image) at (0,0) {
+            \includegraphics[width=0.8\linewidth]{static/shell-ls-problem.png}
+        };
+
+        % Calculate the width and height of the image node for later use
+        \pgfgetlastxy{\imagewidth}{\imageheight}
+
+        \only<2>{
+            \coordinate (A) at ([xshift=.7cm, yshift=2.1cm]image.south west);
+            \coordinate (B) at ([xshift=7.9cm, yshift=2.4cm]image.south west);
+
+            \draw[red, very thick, line width=1pt]
+                (A) rectangle (B);
+        }
+    \end{tikzpicture}
+\end{center}
+
+\only<2>{We could use a checksum system to find out that the bordered file is
+corrupted.}
+
+\end{frame}
+
+\begin{frame}{Problem}
+    \begin{columns}[c]
+        \begin{column}{0.4\textwidth}
+            But, if we have more than one filesystem distributed across
+            different regions?
+            \only<2->{We should make a checksum check for each node.}
+            \only<3>{\textcolor{red}{\textbf{Too complex.}}}
+        \end{column}
+        \begin{column}{0.6\textwidth}
+
+            \begin{tikzpicture}
+                \draw[thick] (0,0) rectangle (4,3);
+                \node[anchor=north west] at (0,3) {\textbf{Switzerland}};
+                \node[circle, draw, thick, minimum size=1.5cm] at (1,1) {node4};
+                \node[circle, draw, thick, minimum size=1.5cm] at (3,1) {node5};
+
+                \draw[thick] (0,4) rectangle (6,7);
+                \node[anchor=north west] at (0,7) {\textbf{Italy}};
+                \node[circle, draw, thick, minimum size=1.5cm] at (1,5.5) {node1};
+                \only<1>{
+                    \node[circle, draw, thick, minimum size=1.5cm] at (3,5.5) {node2};
+                }
+                \only<2->{
+                    \node[circle, draw, red, densely dotted, thick, minimum size=1.5cm] at (3,5.5) {node2};
+                }
+                \node[circle, draw, thick, minimum size=1.5cm] at (5,5.5) {node3};
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}

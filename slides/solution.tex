@@ -1,0 +1,122 @@
+\begin{frame}
+    \usebeamerfont{title}\usebeamercolor[fg]{title}Solution\par
+\end{frame}
+
+\begin{frame}{Solution}
+
+Each node uses a Merkle-tree-structure to organize shards during the integrity
+verification. Every node agree on what file is corrupted thanks to Raft. Data
+    are organized using Reed-Solomon codes.
+
+\begin{center}
+\begin{tikzpicture}[
+    % Base styles for the small trees
+    every node/.style={font=\small},
+    leaf/.style={draw, circle, minimum size=2mm},
+    hash/.style={draw, rectangle, rounded corners=2pt,
+        minimum width=4mm, minimum height=2mm, % Increased size slightly
+        sibling distance=1cm,
+        align=center},
+    node distance=2mm, % Increased distance slightly
+    % Main positioning for the large blocks (not used as nodes, but kept)
+    block/.style={draw, thick, rounded corners, inner sep=12pt}
+]
+
+% ==================== BLOCK 1: NODE 1 ====================
+\begin{scope}[xshift=0cm]
+    % leaves
+    \node[leaf,] (d1-0) {};
+    \node[leaf, right=of d1-0] (d1-1) {};
+    \node[leaf, right=of d1-1] (d1-2) {};
+    \node[leaf, right=of d1-2] (d1-3) {};
+    % leaf-hash nodes
+    \node[hash, above=0.2cm of d1-0] (n1-0) {};
+    \node[hash, above=0.2cm of d1-1] (n1-1) {};
+    \node[hash, above=0.2cm of d1-2] (n1-2) {};
+    \node[hash, above=0.2cm of d1-3] (n1-3) {};
+    % parents
+    \node[hash, above=of $(n1-0)!0.5!(n1-1)$] (p1-01) {};
+    \node[hash, above=of $(n1-2)!0.5!(n1-3)$] (p1-23) {};
+    % root
+    \node[hash, above=of $(p1-01)!0.5!(p1-23)$] (root1) {};
+    % edges with arrows
+    \foreach \a/\b in {d1-0/n1-0, d1-1/n1-1, d1-2/n1-2, d1-3/n1-3, n1-0/p1-01, n1-1/p1-01, n1-2/p1-23, n1-3/p1-23, p1-01/root1, p1-23/root1}
+        \draw[->] (\a) -- (\b);
+
+    % Explicitly drawn rectangle and label
+    \draw[thick, rounded corners] (-0.5,-0.5) rectangle (2.5,2.5);
+    \node[anchor=north west] at (-0.5,2.5) {\textbf{Node 1}};
+    % Define coordinates for connection (center of the right edge)
+    \coordinate (East1) at (2.5, 1.0); 
+\end{scope}
+
+% ==================== BLOCK 2: NODE 2 ====================
+\begin{scope}[shift=({3.5cm, 0cm})]
+    % leaves
+    \node[leaf,] (d2-0) {};
+    \node[leaf, right=of d2-0] (d2-1) {};
+    \node[leaf, right=of d2-1] (d2-2) {};
+    \node[leaf, right=of d2-2] (d2-3) {};
+    % leaf-hash nodes
+    \node[hash, above=0.2cm of d2-0] (n2-0) {};
+    \node[hash, above=0.2cm of d2-1] (n2-1) {};
+    \node[hash, above=0.2cm of d2-2] (n2-2) {};
+    \node[hash, above=0.2cm of d2-3] (n2-3) {};
+    % parents
+    \node[hash, above=of $(n2-0)!0.5!(n2-1)$] (p2-01) {};
+    \node[hash, above=of $(n2-2)!0.5!(n2-3)$] (p2-23) {};
+    % root
+    \node[hash, above=of $(p2-01)!0.5!(p2-23)$] (root2) {};
+    % edges with arrows
+    \foreach \a/\b in {d2-0/n2-0, d2-1/n2-1, d2-2/n2-2, d2-3/n2-3, n2-0/p2-01, n2-1/p2-01, n2-2/p2-23, n2-3/p2-23, p2-01/root2, p2-23/root2}
+        \draw[->] (\a) -- (\b);
+
+    % Explicitly drawn rectangle and label
+    \draw[thick, rounded corners] (-0.5,-0.5) rectangle (2.5,2.5);
+    \node[anchor=north west] at (-0.5,2.5) {\textbf{Node 2}};
+    % Define coordinates for connection
+    \coordinate (West2) at (-0.5, 1.0); % Left side center
+    \coordinate (East2) at (2.5, 1.0);  % Right side center
+\end{scope}
+
+% ==================== BLOCK 3: NODE 3 ====================
+\begin{scope}[shift=({7cm, 0cm})]
+    % leaves
+    \node[leaf,] (d3-0) {};
+    \node[leaf, right=of d3-0] (d3-1) {};
+    \node[leaf, right=of d3-1] (d3-2) {};
+    \node[leaf, right=of d3-2] (d3-3) {};
+    % leaf-hash nodes
+    \node[hash, above=0.2cm of d3-0] (n3-0) {};
+    \node[hash, above=0.2cm of d3-1] (n3-1) {};
+    \node[hash, above=0.2cm of d3-2] (n3-2) {};
+    \node[hash, above=0.2cm of d3-3] (n3-3) {};
+    % parents
+    \node[hash, above=of $(n3-0)!0.5!(n3-1)$] (p3-01) {};
+    \node[hash, above=of $(n3-2)!0.5!(n3-3)$] (p3-23) {};
+    % root
+    \node[hash, above=of $(p3-01)!0.5!(p3-23)$] (root3) {};
+    % edges with arrows
+    \foreach \a/\b in {d3-0/n3-0, d3-1/n3-1, d3-2/n3-2, d3-3/n3-3, n3-0/p3-01, n3-1/p3-01, n3-2/p3-23, n3-3/p3-23, p3-01/root3, p3-23/root3}
+        \draw[->] (\a) -- (\b);
+
+    % Explicitly drawn rectangle and label
+    \draw[thick, rounded corners] (-0.5,-0.5) rectangle (2.5,2.5);
+    \node[anchor=north west] at (-0.5,2.5) {\textbf{Node 3}};
+    % Define coordinates for connection
+    \coordinate (West3) at (-0.5, 1.0); % Left side center
+\end{scope}
+
+% ==================== CONNECTIONS BETWEEN RECTANGLES ====================
+% The coordinates are defined as global coordinates, so they can be referenced directly.
+% Connection 1-2
+\draw[<->, dashed] (East1) -- (West2);
+
+% Connection 2-3
+\draw[<->, dashed] (East2) -- (West3);
+
+\end{tikzpicture}
+\end{center}
+
+\end{frame}
+

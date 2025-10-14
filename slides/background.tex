@@ -1,0 +1,164 @@
+\begin{frame}
+    \usebeamerfont{title}\usebeamercolor[fg]{title}Some background\par
+\end{frame}
+
+\begin{frame}{Merkle trees \only<2->{-- Proof}}
+    \begin{columns}[c]
+        \begin{column}{0.5\textwidth}
+            \only<1>{It is a binary tree $T$ of height $H$ with $2^H$ leaves and
+            $2^{H} - 1$ internal
+nodes. Each leaf stores the cryptographic hash of the underlying data, rather than
+the raw data itself. The same cryptographic hash function is applied recursively at
+internal nodes, which store the hash of the concatenation of their two children.
+            $$n_{parent} = f(n_{left} || n_{right})$$
+            }
+            \only<2>{Merkle trees has the ability to prove that a
+given piece of data is part of a larger set, without revealing or recomputing the
+            entire dataset. For $data_1$ we have $\pi=\{node_0, node_{23}\}$.}
+            \only<3>{
+Given a path $\pi$ we can make a proof verification
+            comparing the result with the presumed root in $O(\log n)$.
+\includegraphics[width=1.1\linewidth]{static/merkle-proof-algorithm.png}
+            }
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \centering
+            \begin{tikzpicture}[
+              every node/.style={font=\tiny},
+              leaf/.style={draw, circle, minimum size=7mm},
+              hash/.style={draw, rectangle, rounded corners=2pt,
+              minimum width=10mm, minimum height=7mm, 
+              red/.style={draw=red},
+              sibling distance=1cm,
+              align=center},
+              node distance=.6cm
+            ]
+            % leaves
+            \node[leaf,] (data0) {$data_0$};
+            \only<1>{\node[leaf, right=of data0] (data1) {$data_1$};}
+            \only<2->{\node[leaf, red, right=of data0] (data1) {$data_1$};}
+            \node[leaf, right=of data1] (data2) {$data_2$};
+            \node[leaf, right=of data2] (data3) {$data_3$};
+            % leaf-hash nodes with two lines (inline math for each line)
+            \only<1>{\node[hash, above=0.2cm of data0] (n0) {\(\mathbf{node_0}\)\\ \(f(data_0)\)};}
+            \only<2->{\node[hash, red, above=0.2cm of data0] (n0) {\(\mathbf{node_0}\)\\ \(f(data_0)\)};}
+            \node[hash, above=0.2cm of data1] (n1) {\(\mathbf{node_1}\)\\ \(f(data_1)\)};
+            \node[hash, above=0.2cm of data2] (n2) {\(\mathbf{node_2}\)\\ \(f(data_2)\)};
+            \node[hash, above=0.2cm of data3] (n3) {\(\mathbf{node_3}\)\\ \(f(data_3)\)};
+            % parents
+            \node[hash, above=of $(n0)!0.5!(n1)$] (p01) {\(\mathbf{node_{01}}\)\\ \(f(node_0\Vert node_1)\)};
+            \only<1>{\node[hash, above=of $(n2)!0.5!(n3)$] (p23) {\(\mathbf{node_{23}}\)\\ \(f(node_2\Vert node_3)\)};}
+            \only<2->{\node[hash, red, above=of $(n2)!0.5!(n3)$] (p23) {\(\mathbf{node_{23}}\)\\ \(f(node_2\Vert node_3)\)};}
+            % root
+            \node[hash, above=of $(p01)!0.5!(p23)$] (root) {\(\textbf{root}\)\\ \(f(node_{01}\Vert node_{23})\)};
+            % edges with arrows
+            \foreach \a/\b in {data0/n0, data1/n1, data2/n2, data3/n3, n0/p01, n1/p01, n2/p23, n3/p23, p01/root, p23/root}
+              \draw[->] (\a) -- (\b);
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Raft}
+A consensus protocol, where each server on a cluster is a follower, a candidate
+or a leader. There is only leader and it is responsible to send messages to other servers via a log.
+
+\centering
+\includegraphics[width=.4\linewidth]{static/raft-logo.png}
+
+\end{frame}
+
+\begin{frame}{Reed-Solomon}
+
+\only<1>{During an upload, a file is split in $n+k$ shards and send each
+    shard to a different node.}
+\only<2>{Up to $k$ agents could be offline, and the upload/download of files
+    still works. We should make a recoverage of the missing shard when the agent
+    comes back online.}
+
+\vspace{1em}
+
+\centering
+
+\begin{tikzpicture}[
+    % Set a global distance for 'right of' positioning
+    node distance=1.5cm 
+]
+
+% Node 1: Start at (0,0)
+\node[
+    draw,
+    cylinder,
+    cylinder uses custom fill,
+    cylinder body fill=gray!10,
+    cylinder end fill=gray!40,
+    minimum height=2.5cm,
+    minimum width=1.5cm,
+    align=center
+] (C1) at (0,0) {Agent\\ 1};
+
+% Node 2: Positioned to the right of Node 1
+\only<1>{
+    \node[
+        draw,
+        cylinder,
+        cylinder uses custom fill,
+        cylinder body fill=gray!10,
+        cylinder end fill=gray!40,
+        minimum height=2.5cm,
+        minimum width=1.5cm,
+        align=center,
+        right=of C1 % <--- Positioning command
+    ] (C2) {Agent\\ 2};
+}
+
+\only<2>{
+    \node[
+        draw,
+        cylinder,
+        cylinder uses custom fill,
+        cylinder body fill=red!70,
+        cylinder end fill=red!90,
+        minimum height=2.5cm,
+        minimum width=1.5cm,
+        align=center,
+        right=of C1 % <--- Positioning command
+    ] (C2) {Agent\\ 2};
+}
+
+% Node 3: Positioned to the right of Node 2
+\node[
+    draw,
+    cylinder,
+    cylinder uses custom fill,
+    cylinder body fill=gray!10,
+    cylinder end fill=gray!40,
+    minimum height=2.5cm,
+    minimum width=1.5cm,
+    align=center,
+    right=of C2 % <--- Positioning command
+] (C3) {Agent\\ 3};
+
+\node[
+    draw,
+    circle,
+    fill=blue!30,
+    align=center,
+    below=of C2 % <--- Positioning command
+] (GW) {Gateway};
+
+
+\draw[->, thick] (GW) -- (C1)
+    node[midway, left, font=\scriptsize] {Shard 1};
+
+\only<1>{\draw[->, thick] (GW) -- (C2)
+     node[midway, left, font=\scriptsize] {Shard 2};}
+\only<2>{\draw[->, red, thick] (GW) -- (C2)
+    node[midway, left, font=\scriptsize] {Shard 2};}
+
+\draw[->, thick] (GW) -- (C3)
+    node[midway, right, font=\scriptsize] {Shard 3};
+
+\end{tikzpicture}
+
+\end{frame}

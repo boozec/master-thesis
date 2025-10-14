@@ -1,0 +1,65 @@
+\begin{frame}{Cubbit}
+\centering
+\includegraphics[width=0.4\linewidth]{static/cubbit-logo.png}
+\\
+\vspace{1em}
+Cubbit, a geo-distributed storage system.\\
+\end{frame}
+
+\begin{frame}{Cubbit -- How it works}
+    \begin{columns}[c]
+        \begin{column}{0.4\textwidth}
+            A file is split in $n+k$ shards using Reed-Solomon codes and each
+            shard is sent to a different node.\\ We need at least $n$ shards to reconstruct the
+            entire file, $k$ shards are used as redundancy.
+
+        \end{column}
+        \begin{column}{0.6\textwidth}
+
+            \begin{tikzpicture}
+                \draw[thick] (0,0) rectangle (4.2,3);
+                \node[anchor=north west] at (0,3) {\textbf{Switzerland -- 2 nodes}};
+                \node[circle, draw, thick, minimum size=1.5cm] at (1,1) {shard4};
+                \node[circle, draw, thick, minimum size=1.5cm] at (3,1) {shard5};
+
+                \draw[thick] (0,4) rectangle (6,7);
+                \node[anchor=north west] at (0,7) {\textbf{Italy -- 3 nodes}};
+                \node[circle, draw, thick, minimum size=1.5cm] at (1,5.5) {shard1};
+                \node[circle, draw, thick, minimum size=1.5cm] at (3,5.5) {shard2};
+                \node[circle, draw, thick, minimum size=1.5cm] at (5,5.5) {shard3};
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Cubbit -- Problems using checksum}
+    \begin{columns}[c]
+        \begin{column}{0.4\textwidth}
+            \begin{enumerate}
+                \item<1-> If nodes are offline, can't check all shards for a file.
+                \item<2-> During an upload some agents can be offline, but they
+                could be online during the check.
+                \item<3-> Check for each reconstructed file or for each shard?
+            \end{enumerate}
+
+        \end{column}
+        \begin{column}{0.6\textwidth}
+
+            \begin{tikzpicture}
+                \draw[thick] (0,0) rectangle (4.2,3);
+                \node[anchor=north west] at (0,3) {\textbf{Switzerland -- 2 nodes}};
+                \node[circle, draw, dotted, minimum size=1.5cm] at (1,1) {shard4};
+                \node[circle, draw, dotted, minimum size=1.5cm] at (1,1) {shard4};
+                \node[circle, draw, thick, minimum size=1.5cm] at (3,1) {shard5};
+
+                \draw[thick] (0,4) rectangle (6,7);
+                \node[anchor=north west] at (0,7) {\textbf{Italy -- 3 nodes}};
+                \node[circle, draw, thick, minimum size=1.5cm] at (1,5.5) {shard1};
+                \only<1>{\node[circle, draw, thick, minimum size=1.5cm] at (3,5.5) {shard2};}
+                \only<2->{\node[circle, draw, thick, minimum size=1.5cm] at
+                (3,5.5) {\textcolor{red}{n/a}};}
+                \node[circle, draw, dotted, minimum size=1.5cm] at (5,5.5) {shard3};
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}
