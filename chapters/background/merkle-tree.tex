@@ -70,7 +70,7 @@ For each height $h < H$, we define $Auth_h$ to be the value of the sibling node 
 
 For instance, Figure \ref{proof-path-l1} shows the authentication path corresponding to the second leaf.
 
-This property, known as a \emph{Merkle proof}, enables efficient verification of data integrity. In a naive implementation, the entire Merkle tree is stored in memory. In such a case, generating a proof for a leaf - as illustrated in Algorithm \ref{algo:merkle-proof-generation} - involves traversing only the path from the leaf to the root. This reduces proof generation from a potentially linear scan of all data ($O(n)$) to a logarithmic traversal of the tree ($O(\log n)$).
+This property, known as a \emph{Merkle proof}, enables efficient verification of data integrity. In a naive implementation, the entire Merkle tree is stored in memory. In such a case, generating a proof for a leaf -- as illustrated in Algorithm \ref{algo:merkle-proof-generation} -- involves traversing only the path from the leaf to the root. This reduces proof generation from a potentially linear scan of all data ($O(n)$) to a logarithmic traversal of the tree ($O(\log n)$).
 
 \vspace{1em}
 \begin{algorithm}[H]

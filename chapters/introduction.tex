@@ -8,7 +8,7 @@ detect data corruption without assuming that all nodes are always online? The an
 
 File corruption can silently compromise stored data, reduce reliability, or increase recovery costs. Traditional approaches such as checksums, replication, or RAID \cite{chen1994raid} provide partial solutions, but they also show limitations when applied to large-scale and geo-distributed environments. In particular, these methods often assume constant node availability or require full scans that become increasingly expensive as data grows.
 
-During my internship at Cubbit\footnote{\url{https://cubbit.io}}, the first geo-distributed cloud storage provider, I studied the company's existing integrity verification protocol, which relies on checksum-based verification. While functional, this approach has two key weaknesses: it assumes that nodes are always online, and it requires heavy operations to verify integrity. Moreover, Cubbit stores files using Reed-Solomon coding, meaning that data is distributed into shards across multiple agents, and files are reconstructed from subsets of those shards. This introduces additional challenges, since nodes holding useful shards may be offline at any time.
+During my internship at Cubbit\footnote{\url{https://cubbit.io}}, the first geo-distributed cloud storage provi-\ der, I studied the company's existing integrity verification protocol, which relies on checksum-based verification. While functional, this approach has two key weaknesses: it assumes that nodes are always online, and it requires heavy operations to verify integrity. Moreover, Cubbit stores files using Reed-Solomon coding, meaning that data is distributed into shards across multiple agents, and files are reconstructed from subsets of those shards. This introduces additional challenges, since nodes holding useful shards may be offline at any time.
 
 Motivated by these challenges, I explored an alternative approach based on Merkle trees. Merkle trees, widely used in blockchain and distributed databases, allow efficient and hierarchical verification of large datasets: instead of re-checking entire files, integrity can be confirmed by verifying only a logarithmic number of hashes along a path in the tree. Combined with a consensus algorithm, this structure allows folder-level integrity verification even in clusters where nodes frequently join and leave.
 
@@ -21,22 +21,22 @@ Merkle trees address this gap, providing an efficient mechanism to detect and lo
 
 This thesis addresses the need for a integrity verification protocol that:
 \begin{itemize}
-\item avoids repeated full file scans by verifying integrity at the folder and sub-folder level;
-\item tolerates offline nodes by storing and synchronizing integrity metadata across the cluster;
-\item integrates with Cubbit's existing Reed-Solomon coding, ensuring that verification is possible even during partial uploads and recoveries.
+	\item avoids repeated full file scans by verifying integrity at the folder and sub-folder level;
+	\item tolerates offline nodes by storing and synchronizing integrity metadata across the cluster;
+	\item integrates with Cubbit's existing Reed-Solomon coding, ensuring that verification is possible even during partial uploads and recoveries.
 \end{itemize}
 
 The central question is: how can a Merkle-tree-based integrity verification protocol, combined with Raft consensus and compatible with Reed-Solomon coding, provide efficient, scalable, and fault-tolerant integrity verification in a geo-distributed cluster?
 
 \section{Research Objectives}
 
-The primary objective of this thesis is to design and evaluate a integrity verification protocol for distributed storage clusters that is both efficient and resilient to node failures. Unlike checksum-based approaches, the proposed system leverages:  
+The primary objective of this thesis is to design and evaluate a integrity verification protocol for distributed storage clusters that is both efficient and resilient to node failures. Unlike checksum-based approaches, the proposed system leverages:
 \begin{itemize}
-    \item an ad hoc Merkle tree library optimized for folder-based hierarchies;  
-    \item coordination via Raft consensus to ensure consistent integrity
-        metadata across nodes;  
-    \item integration with Cubbit's Reed-Solomon-based infrastructure to handle partial uploads and recoveries;  
-    % \item evaluation of different cryptographic hash functions (SHA-256 vs BLAKE3) for performance trade-offs.  
+	\item an ad hoc Merkle tree library optimized for folder-based hierarchies;
+	\item coordination via Raft to ensure consistent integrity
+	      metadata across nodes;
+	\item integration with Cubbit's Reed-Solomon-based infrastructure to handle partial uploads and recoveries;
+	      % \item evaluation of different cryptographic hash functions (SHA-256 vs BLAKE3) for performance trade-offs.
 \end{itemize}
 
 The overarching goal is to demonstrate that an optimized, folder-oriented Merkle
@@ -50,7 +50,7 @@ geo-distri-\ buted clusters.
 This document is organized as follows:
 
 Chapter 2 provides the necessary background and serves as a literature review. It examines the key technologies and theoretical foundations relevant to this work, including Merkle trees, cryptographic hash functions, consensus algorithms, and the core component of the Cubbit infrastructure. For each of these elements, different solutions proposed in the literature are analyzed and compared. The chapter then introduces the selected solutions, together with the rationale for their adoption, explaining why they are best suited to the integrity verification protocol under consideration.
-    
+
 Chapter 3 describes the architecture of the proposed integrity verification protocol. It explains how the components introduced in Chapter 2 are combined and how they interact within the overall design.
 
 Chapter 4 presents the prototype implementation and the experimental evaluation. The system is tested under different scenarios, varying both the number of agents in the cluster and the number of files stored per agent. Controlled corruption is deliberately injected into the data, and the evaluation measures the elapsed time between the initiation of a corruption check and the correct identification of the corrupted file.

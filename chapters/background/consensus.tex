@@ -78,9 +78,9 @@ PB-Raft \cite{shi2025pb} is a recent proposal that aims to combine the strengths
 
 Key features of PB-Raft include:
 \begin{itemize}
-    \item \textbf{BLS signatures \cite{boneh2001short}.} Allow short, aggregable multi-signatures that improve efficiency in log replication.
-    \item \textbf{PageRank-inspired leader election.} Nodes are ranked by a probability score. Nodes with higher scores use shorter timeouts, balancing fairness and responsiveness.
-    \item \textbf{Semi-synchronous model.} Assumes bounded network delays while tolerating Byzantine behavior.
+    \item \textbf{BLS signatures \cite{boneh2001short}:} Allow short, aggregable multi-signatures that improve efficiency in log replication.
+    \item \textbf{PageRank-inspired leader election:} Nodes are ranked by a probability score. Nodes with higher scores use shorter timeouts, balancing fairness and responsiveness.
+    \item \textbf{Semi-synchronous model:} Assumes bounded network delays while tolerating Byzantine behavior.
 \end{itemize}
 
 Compared to PBFT, PB-Raft reduces message complexity by adopting Raft's two-phase replication approach while retaining Byzantine resilience.  

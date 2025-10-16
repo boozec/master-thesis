@@ -18,41 +18,41 @@ Its design makes it extensible to new optimizations and deployment models.
 Several directions emerge for further research and practical refinement:
 
 \begin{itemize}
-    \item \textbf{Adaptive Merkle tree deployment per customer.}
-    Since corruption checks behave differently depending on filesystem organization, the system could apply Merkle trees adaptively based on customer usage.
-    Some customers store many small files, while others handle few but very large files.
-    Maintaining a dedicated filesystem per customer (for each agent) would also improve security and isolation, avoiding shared-state interference between unrelated datasets.
+	\item \textbf{Adaptive Merkle tree deployment per customer.}
+	      Since corruption checks behave differently depending on filesystem organization, the system could apply Merkle trees adaptively based on customer usage.
+	      Some customers store many small files, while others handle few but very large files.
+	      Maintaining a dedicated filesystem per customer (for each agent) would also improve security and isolation, avoiding shared-state interference between unrelated datasets.
 
-    \item \textbf{Scalability to a large number of agents.}
-    Current experiments were limited to small clusters.
-    It remains to be tested how the system behaves with several dozens of agents.
-    If corruption checks require hours to complete, the approach could become impractical at large scale; therefore, performance profiling for large clusters is essential.
+	\item \textbf{Scalability to a large number of agents.}
+	      Current experiments were limited to small clusters.
+	      It remains to be tested how the system behaves with several dozens of agents.
+	      If corruption checks require hours to complete, the approach could become impractical at large scale; therefore, performance profiling for large clusters is essential.
 
-    \item \textbf{Optimizing folder and hash map access.}
-    The use of \texttt{TrieMap}, potentially in a concurrent implementation,
-        could optimize lookup speed for subfolders in \texttt{hashes2}, reducing blocking time during verification.
+	\item \textbf{Optimizing folder and hash map access.}
+	      The use of \texttt{TrieMap}, potentially in a concurrent implementation,
+	      could optimize lookup speed for subfolders in \texttt{hashes2}, reducing blocking time during verification.
 
-    \item \textbf{Reducing redundant root retrievals.}
-    Some performance gain might be achieved by avoiding unnecessary \emph{get root} operations, retrieving roots randomly or selectively.
-    However, this introduces the risk of inconsistency or false negatives, so the safest approach remains to always query the current Merkle root from all online agents.
+	\item \textbf{Reducing redundant root retrievals.}
+	      Some performance gain might be achieved by avoiding unnecessary \emph{get root} operations, retrieving roots randomly or selectively.
+	      However, this introduces the risk of inconsistency or false negatives, so the safest approach remains to always query the current Merkle root from all online agents.
 
-    \item \textbf{Parallel verification of independent folders.}
-    Each top-level folder is independent; therefore, Merkle root verification can be executed concurrently across top-level directories.
-    This parallelism could significantly reduce total verification time without compromising correctness.
+	\item \textbf{Parallel verification of independent folders.}
+	      Each top-level folder is independent; therefore, Merkle root verification can be executed concurrently across top-level directories.
+	      This parallelism could significantly reduce total verification time without compromising correctness.
 
-    \item \textbf{Deeper folder hierarchies.}
-    The current two-level folder model simplifies testing but may limit scalability.
-    Adding additional folder levels could further localize corruption checks and reduce recomputation overhead, potentially improving performance for large and complex filesystems.
+	\item \textbf{Deeper folder hierarchies.}
+	      The current two-level folder model simplifies testing but may limit scalability.
+	      Adding additional folder levels could further localize corruption checks and reduce recomputation overhead, potentially improving performance for large and complex filesystems.
 
-    \item \textbf{Integration with Cubbit's file versioning system.}
-    Cubbit's versioning mechanism already allows users to restore previous file states.
-    This feature implicitly extends the proposed protocol, enabling a combined
-        repair and verification process: the system can revert to a prior version of a file or folder and then perform a corruption check, providing an additional safeguard against data loss.
+	\item \textbf{Integration with Cubbit's file versioning system.}
+	      Cubbit's versioning mechanism already allows users to restore previous file states.
+	      This feature implicitly extends the proposed protocol, enabling a combined
+	      repair and verification process: the system can revert to a prior version of a file or folder and then perform a corruption check, providing an additional safeguard against data loss.
 
-    \item \textbf{Folder-level verification granularity.}
-    The current protocol operates at the folder level rather than on individual files.
-    As a result, while it can detect that a folder contains corrupted data, it cannot directly identify which specific file within that folder is affected.
-    Future developments could explore finer-grained verification to pinpoint corrupted files more precisely.
+	\item \textbf{Folder-level verification granularity.}
+	      The current protocol operates at the folder level rather than on individual files.
+	      As a result, while it can detect that a folder contains corrupted data, it cannot directly identify which specific file within that folder is affected.
+	      Future developments could explore finer-grained verification to pinpoint corrupted files more precisely.
 \end{itemize}
 
 In summary, this work shows that a Merkle-tree-based integrity verification
