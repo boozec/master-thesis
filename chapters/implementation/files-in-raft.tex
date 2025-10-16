@@ -200,7 +200,8 @@ produces only the Merkle root hash as a string, which the Go application capture
 
 The binary can be extended with additional modes, such as proof verification. 
 In this case, passing a \texttt{--proof} flag triggers Merkle proof validation instead of 
-tree creation, as shown in Listing \ref{code:partial-mt-rs-2}. The output in this case is 
+tree creation, as shown in Listing \ref{code:partial-mt-rs-2}. The proof is always generated 
+and verified from the first leaf of the input data. The output is 
 a boolean value (\texttt{true} or \texttt{false}) indicating whether the proof is valid.  
 
 For completeness, the Go module \texttt{merkletree} provides methods for 
