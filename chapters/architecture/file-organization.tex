@@ -21,7 +21,7 @@ As explained in Section \ref{sec:merkle-tree-library}, the developed Merkle tree
       child {node {61a}}
     };
 \end{tikzpicture}
-\caption{organization of files under the folder \texttt{ff}, represented as a tree structure.}
+\caption{Organization of files under the folder \texttt{ff}, represented as a tree structure.}
 \label{fig:file-organization-example-in-tree}
 \end{figure}
 
@@ -69,10 +69,10 @@ Because each file is split into $n+k$ shards and distributed across different no
 
 To better understand this, we can consider the entire filesystem of an agent as a tree structured as follows:
 \begin{itemize}
-    \item \textbf{Root.} The global root, representing all files stored by the agent. In practice, this is rarely used because computing a Merkle tree for this element would require hashing the entire filesystem at once.
-    \item \textbf{Second level.} The top-level folders (e.g., \texttt{ff}), each of which corresponds to the root of a Merkle tree for that folder.
-    \item \textbf{Third level.} The second-level (or \emph{sub}) folders (e.g., \texttt{ff/4c}), which are smaller Merkle trees containing only a subset of files.
-    \item \textbf{Leaves.} The actual file data blocks.
+    \item \textbf{Root:} The global root, representing all files stored by the agent. In practice, this is rarely used because computing a Merkle tree for this element would require hashing the entire filesystem at once.
+    \item \textbf{Second level:} The top-level folders (e.g., \texttt{ff}), each of which corresponds to the root of a Merkle tree for that folder.
+    \item \textbf{Third level:} The second-level (or \emph{sub}) folders (e.g., \texttt{ff/4c}), which are smaller Merkle trees containing only a subset of files.
+    \item \textbf{Leaves:} The actual file data blocks.
 \end{itemize}
 
 The global root of the entire filesystem is avoided because it is too expensive to compute, especially across multiple agents that may be offline at any given time. At the other extreme, while each file could theoretically be validated individually, storing and checking a hash for every file would reduce the system to a simple checksum-based corruption detection scheme, which lacks scalability.  
@@ -184,7 +184,7 @@ The distinction between top-level and second-level folder roots becomes largely 
   child {node[hash3] {\texttt{ff}'s root of Agent 3}};
 
 \end{tikzpicture}
-\caption{Merkle tree constructed from the root hashes of top-level folders. Each folder root acts as a leaf in this Merkle tree.}
+\caption{Merkle tree constructed from the root hashes of top-level folders. Each folder root acts as a leaf in this Merkle tree. Internal nodes are omitted for clarity.}
 \label{fig:merkle-tree-first-level-of-saved-hashes}
 \end{figure}
 
@@ -218,7 +218,7 @@ The distinction between top-level and second-level folder roots becomes largely 
   child {node[hash3] {\texttt{ff/6d}'s root of Agent 3}};
 
 \end{tikzpicture}
-\caption{Merkle tree constructed from the root hashes of second-level folders. Each folder root acts as a leaf in this Merkle tree.}
+\caption{Merkle tree constructed from the root hashes of second-level folders. Each folder root acts as a leaf in this Merkle tree. Internal nodes are omitted for clarity.}
 \label{fig:merkle-tree-second-level-of-saved-hashes}
 \end{figure}
 

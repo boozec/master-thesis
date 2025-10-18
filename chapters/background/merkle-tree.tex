@@ -144,7 +144,7 @@ In the literature, several advanced variants of Merkle trees exist, such as XMSS
 In XMSS, to sign a message $i$, the authentication path of the $i$-th leaf is needed. In a native way, recomputing this path would require rebuilding large parts of the tree, which becomes impractical when the tree contains millions of leaves. To solve this, the BDS traversal algorithm was introduced: it incrementally maintains and updates the authentication path in $O(h)$ time and $O(h)$ space (where $h = \log_2(n)$ is the tree height). This makes XMSS practical for very large trees.
 
 In our case, however, the scenario is fundamentally different. We are not
-designing a post-quantum signature scheme but a integrity verification protocol
+designing a post-quantum signature scheme but an integrity verification protocol
 for folders in a geo-distributed storage cluster. The size of our Merkle trees is modest: typically on the order of tens of leaves per folder. For trees of this size:
 \begin{itemize}
     \item Proofs can be recomputed directly, without significant computational overhead.

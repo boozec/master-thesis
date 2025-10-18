@@ -19,7 +19,7 @@ Cubbit's use of Reed-Solomon coding ensures that files can be reconstructed even
 
 Merkle trees address this gap, providing an efficient mechanism to detect and localize corruption by verifying a logarithmic number of hashes along an authentication path. The key challenge lies in constructing and verifying Merkle trees in a distributed setting, where some shards are stored on agents that may be offline.
 
-This thesis addresses the need for a integrity verification protocol that:
+This thesis addresses the need for an integrity verification protocol that:
 \begin{itemize}
 	\item avoids repeated full file scans by verifying integrity at the folder and sub-folder level;
 	\item tolerates offline nodes by storing and synchronizing integrity metadata across the cluster;
@@ -30,7 +30,7 @@ The central question is: how can a Merkle-tree-based integrity verification prot
 
 \section{Research Objectives}
 
-The primary objective of this thesis is to design and evaluate a integrity verification protocol for distributed storage clusters that is both efficient and resilient to node failures. Unlike checksum-based approaches, the proposed system leverages:
+The primary objective of this thesis is to design and evaluate an integrity verification protocol for distributed storage clusters that is both efficient and resilient to node failures. Unlike checksum-based approaches, the proposed system leverages:
 \begin{itemize}
 	\item an ad hoc Merkle tree library optimized for folder-based hierarchies;
 	\item coordination via Raft to ensure consistent integrity

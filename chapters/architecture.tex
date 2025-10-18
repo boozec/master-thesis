@@ -5,7 +5,7 @@
  introduced, designed to operate efficiently both at the folder level and on
  individual data items. Then, the organization of the Merkle tree within the
  system is discussed, including how the nodes (also referred to as
- \textit{agents}) exchange information through the Raft cluster. Particular attention is given to scenarios in which some agents are temporarily unavailable (during uploads or during corruption checks) and how the system leverages the Raft log to maintain a consistent view of per-agent root hashes. This ensures that corruption verification can proceed safely and correctly, even when some agents lag behind or remain offline, independently of the Reed-Solomon requirement.
+ \textit{agents}) exchange information through the Raft cluster. Particular attention is given to scenarios in which some agents are temporarily unavailable (during uploads or during corruption checks) and how the system leverages the Raft log to maintain a consistent view of per-agent root hashes. This ensures that integrity verification can proceed safely and correctly, even when some agents lag behind or remain offline, independently of the Reed-Solomon requirement.
 
 \input{chapters/architecture/merkle-tree-library}
 \input{chapters/architecture/file-organization}

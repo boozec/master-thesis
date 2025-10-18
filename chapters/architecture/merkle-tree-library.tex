@@ -219,7 +219,9 @@ where
             } else {
                 NodeChildType::Right
             };
-            path.push(ProofNode { hash: sibling.hash().to_string(), child_type });
+            path.push(ProofNode {
+                hash: sibling.hash().to_string(), child_type 
+            });
             current_index >>= 1;
         }
         Some(MerkleProof { path, leaf_index: index })
