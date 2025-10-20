@@ -1,0 +1,28 @@
+\frametitle{Map of hashes}
+\footnotesize
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\footnotesize,
+                   keywordstyle=\color{blue},
+                   commentstyle=\color{gray},
+                   stringstyle=\color{teal},
+                   showstringspaces=false]
+roots = {
+    "fe":   "new root hash of fe",
+    "ff":   "new root hash of ff",
+    "ff/4c":"new root hash of ff/4c",
+    # ...
+}
+
+agent_roots = {
+    "fe": [
+        "Agent 1 root hash of fe",
+        "Agent 2 root hash of fe",
+        "Agent 3 root hash of fe"
+    ],
+    # ...
+    "ff/4c": [
+        "Agent 1 root hash of ff/4c",
+        "Agent 2 root hash of ff/4c",
+        "Agent 3 root hash of ff/4c"
+    ],
+}
+\end{lstlisting}

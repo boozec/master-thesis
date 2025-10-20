@@ -59,6 +59,35 @@ Given a path $\pi$ we can make a proof verification
     \end{columns}
 \end{frame}
 
+\begin{frame}{Merkle trees -- Lib}
+    \begin{columns}[c]
+        \begin{column}{0.7\textwidth}
+            A dedicated library written in Rust to retreive Merkle tree root
+            hash fast.
+            \only<2->{
+                \begin{table}[h!]
+                    \centering
+                    \footnotesize % or \small, \scriptsize, \tiny
+                    \begin{tabular}{|l|c|c|c|}
+                    \hline
+                        \textbf{Hash function} & \textbf{5 MB} & \textbf{10 MB} & \textbf{15 MB} \\
+                    \hline
+                        SHA-256   & 89.901 ms  & 178.42 ms  & 268.53 ms \\
+                        Keccak-256 & 521.49 ms & 1.1334 s   & 1.3438 s \\
+                        BLAKE3    & 73.091 ms  & 154.68 ms  & 219.79 ms \\
+                    \hline
+                    \end{tabular}
+                \end{table}
+            }
+        \end{column}
+        \begin{column}{0.3\textwidth}
+            \centering
+            \includegraphics[width=.4\linewidth]{static/rust-logo.png}
+        \end{column}
+    \end{columns}
+
+\end{frame}
+
 \begin{frame}{Raft}
 A consensus protocol, where each server on a cluster is a follower, a candidate
 or a leader. There is only leader and it is responsible to send messages to other servers via a log.

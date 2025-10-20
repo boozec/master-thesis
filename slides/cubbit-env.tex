@@ -9,8 +9,7 @@ Cubbit, a geo-distributed storage system.\\
 \begin{frame}{Cubbit -- How it works}
     \begin{columns}[c]
         \begin{column}{0.4\textwidth}
-            A file is split in $n+k$ shards using Reed-Solomon codes and each
-            shard is sent to a different node.\\ We need at least $n$ shards to reconstruct the
+            A file is split in $n+k$ shards. \\ We need at least $n$ shards to reconstruct the
             entire file, $k$ shards are used as redundancy.
 
         \end{column}
