@@ -1,7 +1,3 @@
-\begin{frame}
-    \usebeamerfont{title}\usebeamercolor[fg]{title}Some background\par
-\end{frame}
-
 \begin{frame}{Merkle trees \only<2->{-- Proof}}
     \begin{columns}[c]
         \begin{column}{0.5\textwidth}
@@ -10,15 +6,13 @@
 nodes. Each leaf stores the cryptographic hash of the underlying data, rather than
 the raw data itself. The same cryptographic hash function is applied recursively at
 internal nodes, which store the hash of the concatenation of their two children.
-            $$n_{parent} = f(n_{left} || n_{right})$$
-            }
-            \only<2>{Merkle trees has the ability to prove that a
+            $$n_{parent} = f(n_{left} || n_{right})$$}
+\only<2>{
+Merkle trees has the ability to prove that a
 given piece of data is part of a larger set, without revealing or recomputing the
-            entire dataset. For $data_1$ we have $\pi=\{node_0, node_{23}\}$.}
-            \only<3>{
-Given a path $\pi$ we can make a proof verification
+            entire dataset. For $data_1$ we have $\pi=\{node_0, node_{23}\}$.\\
+We can make a proof verification
             comparing the result with the presumed root in $O(\log n)$.
-\includegraphics[width=1.1\linewidth]{static/merkle-proof-algorithm.png}
             }
         \end{column}
         \begin{column}{0.5\textwidth}
@@ -62,23 +56,20 @@ Given a path $\pi$ we can make a proof verification
 \begin{frame}{Merkle trees -- Lib}
     \begin{columns}[c]
         \begin{column}{0.7\textwidth}
-            A dedicated library written in Rust to retreive Merkle tree root
-            hash fast.
-            \only<2->{
-                \begin{table}[h!]
-                    \centering
-                    \footnotesize % or \small, \scriptsize, \tiny
-                    \begin{tabular}{|l|c|c|c|}
-                    \hline
-                        \textbf{Hash function} & \textbf{5 MB} & \textbf{10 MB} & \textbf{15 MB} \\
-                    \hline
-                        SHA-256   & 89.901 ms  & 178.42 ms  & 268.53 ms \\
-                        Keccak-256 & 521.49 ms & 1.1334 s   & 1.3438 s \\
-                        BLAKE3    & 73.091 ms  & 154.68 ms  & 219.79 ms \\
-                    \hline
-                    \end{tabular}
-                \end{table}
-            }
+            A dedicated Rust library was developed to efficiently compute Merkle tree root hashes.
+            \begin{table}[h!]
+                \centering
+                \footnotesize % or \small, \scriptsize, \tiny
+                \begin{tabular}{|l|c|c|c|}
+                \hline
+                    \textbf{Hash function} & \textbf{5 MB} & \textbf{10 MB} & \textbf{15 MB} \\
+                \hline
+                    SHA-256   & 89.901 ms  & 178.42 ms  & 268.53 ms \\
+                    Keccak-256 & 521.49 ms & 1.1334 s   & 1.3438 s \\
+                    BLAKE3    & 73.091 ms  & 154.68 ms  & 219.79 ms \\
+                \hline
+                \end{tabular}
+            \end{table}
         \end{column}
         \begin{column}{0.3\textwidth}
             \centering
@@ -90,7 +81,7 @@ Given a path $\pi$ we can make a proof verification
 
 \begin{frame}{Raft}
 A consensus protocol, where each server on a cluster is a follower, a candidate
-or a leader. There is only leader and it is responsible to send messages to other servers via a log.
+or a leader. There is a single leader, responsible for sending messages to other servers via the Raft log.
 
 \centering
 \includegraphics[width=.4\linewidth]{static/raft-logo.png}
@@ -99,12 +90,7 @@ or a leader. There is only leader and it is responsible to send messages to othe
 
 \begin{frame}{Reed-Solomon}
 
-\only<1>{During an upload, a file is split in $n+k$ shards and send each
-    shard to a different node.}
-\only<2>{Up to $k$ agents could be offline, and the upload/download of files
-    still works. We should make a recoverage of the missing shard when the agent
-    comes back online.}
-
+File split in $n+k$ pieces. Each piece to a different agent.
 \vspace{1em}
 
 \centering
@@ -126,34 +112,17 @@ or a leader. There is only leader and it is responsible to send messages to othe
     align=center
 ] (C1) at (0,0) {Agent\\ 1};
 
-% Node 2: Positioned to the right of Node 1
-\only<1>{
-    \node[
-        draw,
-        cylinder,
-        cylinder uses custom fill,
-        cylinder body fill=gray!10,
-        cylinder end fill=gray!40,
-        minimum height=2.5cm,
-        minimum width=1.5cm,
-        align=center,
-        right=of C1 % <--- Positioning command
-    ] (C2) {Agent\\ 2};
-}
-
-\only<2>{
-    \node[
-        draw,
-        cylinder,
-        cylinder uses custom fill,
-        cylinder body fill=red!70,
-        cylinder end fill=red!90,
-        minimum height=2.5cm,
-        minimum width=1.5cm,
-        align=center,
-        right=of C1 % <--- Positioning command
-    ] (C2) {Agent\\ 2};
-}
+\node[
+    draw,
+    cylinder,
+    cylinder uses custom fill,
+    cylinder body fill=red!70,
+    cylinder end fill=red!90,
+    minimum height=2.5cm,
+    minimum width=1.5cm,
+    align=center,
+    right=of C1 % <--- Positioning command
+] (C2) {Agent\\ 2};
 
 % Node 3: Positioned to the right of Node 2
 \node[
@@ -180,10 +149,8 @@ or a leader. There is only leader and it is responsible to send messages to othe
 \draw[->, thick] (GW) -- (C1)
     node[midway, left, font=\scriptsize] {Shard 1};
 
-\only<1>{\draw[->, thick] (GW) -- (C2)
-     node[midway, left, font=\scriptsize] {Shard 2};}
-\only<2>{\draw[->, red, thick] (GW) -- (C2)
-    node[midway, left, font=\scriptsize] {Shard 2};}
+\draw[->, red, thick] (GW) -- (C2)
+    node[midway, left, font=\scriptsize] {Shard 2};
 
 \draw[->, thick] (GW) -- (C3)
     node[midway, right, font=\scriptsize] {Shard 3};

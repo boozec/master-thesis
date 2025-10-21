@@ -1,16 +1,12 @@
-\begin{frame}
-    \usebeamerfont{title}\usebeamercolor[fg]{title}Tests\par
-\end{frame}
-
-\begin{frame}{Set up}
+\begin{frame}{Tests -- Set up}
 8 Agents with 4 CPU(s), 8-16 GB of RAM, and 45 GB of Disk.
 
 \begin{center}
 \includegraphics[width=0.5\linewidth]{static/map-chart.png}
 \end{center}
 
-\only<2>{Per each test let's consider: number of online/offline Agents and file
-sizes and counts.}
+For each test, we consider the number of online/offline agents and the file
+    sizes and counts.
 
 \end{frame}
 
@@ -216,22 +212,19 @@ sizes and counts.}
 
 \begin{frame}{Results}
 \begin{itemize}
-\item Scenarios with many small files amplify the cost of synchronization and
-consensus.
+\item Scenarios with many small files amplify the cost of synchronization and consensus.
 \item Verification time increases with the number of agents and files.
 \item Confirmed the correctness and resilience of the approach under different scenarios and network conditions.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusion}
-\begin{itemize}
-\item Raft ensures that integrity metadata is synchronized cluster-wide, while Merkle trees allow hierarchical and efficient integrity checks at the folder or subfolder level.
-\item<2> It is possible to maintain a consistent and verifiable integrity state across distributed agents without relying on full file scans or constant node availability.
-\end{itemize}
+
+By combining Merkle trees, Raft consensus, and Reed-Solomon codes, we built a scalable and fault-tolerant protocol for distributed data integrity verification without relying on full file scans or constant node availability.
 \end{frame}
 
 
 \begin{frame}
 \centering
-    \usebeamerfont{title}\usebeamercolor[fg]{title}Thank you for the attention.\par
+    \usebeamerfont{title}\usebeamercolor[fg]{title}Thank you\par
 \end{frame}

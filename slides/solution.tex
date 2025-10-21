@@ -1,12 +1,8 @@
-\begin{frame}
-    \usebeamerfont{title}\usebeamercolor[fg]{title}Solution\par
-\end{frame}
-
 \begin{frame}{Solution}
 
-Each node uses a Merkle-tree-structure to organize shards during the integrity
-verification. Every node agree on what file is corrupted thanks to Raft. Data
-    are organized using Reed-Solomon codes.
+Each node uses a Merkle tree structure to organize shards during integrity verification.
+All nodes agree on which file is corrupted through Raft consensus.
+Data are organized using Reed-Solomon codes.
 
 \begin{center}
 \begin{tikzpicture}[

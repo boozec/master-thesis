@@ -1,17 +1,13 @@
-\begin{frame}
-    \usebeamerfont{title}\usebeamercolor[fg]{title}Let's put all together\par
-\end{frame}
-
-\begin{frame}{Upload flow \only<6->{-- Directory tree}}
+\begin{frame}{Upload flow \only<2->{-- Directory tree}}
     Let's save our Christmas holidays family picture on Cubbit.
     \begin{itemize}
-        \item<2-> Select a file. (e.g., xmas2024.png)
-        \item<3-> Rename the file using a random string. (e.g., ff4c4b3)
-        \item<4-> Use Reed-Solomon and send each shard to a different node. (e.g., ff4c4b3.1 to Agent 1)
-        \item<5-> Store the file using a two-level of folders. (e.g. ff/4c/4b3.1 for Agent 1)
+        \item Select a file. (e.g., xmas2024.png)
+        \item Gateway applies Reed-Solomon codes and sends each shard to a different agent. (e.g., xmas2024.1 to Agent 1)
+        \item Each agent chooses the same pseudo-random string for the filename. (e.g., ff4c4b3)
+        \item Finally, every agent saves the file using a two-level folder structure. (e.g. ff/4c/4b3.1 for Agent 1)
     \end{itemize}
 
-    \only<6->{
+    \only<2->{
         \begin{figure}[h]
         \centering
         \begin{tikzpicture}[
@@ -111,7 +107,7 @@
 \end{tikzpicture}
 \end{figure}
 
-Every Agent sends Merkle tree root hashes for top-level and second-level folders to the Agent leader.
+Each agent sends the Merkle root hashes of their top- and second-level folders to the agent leader.
 
 \end{frame}
 
@@ -153,8 +149,8 @@ Every Agent sends Merkle tree root hashes for top-level and second-level folders
 \end{tikzpicture}
 \end{figure}
 
-The Agent leader computes other Merkle trees for each folder using the Merkle tree hashes for
-    each Agent.
+The leader builds Merkle trees for each folder, with the agents' Merkle
+    root hashes as leaves.
 
 
 \end{frame}
@@ -195,10 +191,10 @@ agent_roots = {
 This map allows us to:
 \begin{itemize}
     \item Use \texttt{agent\_roots[<some\_folder>][i-th-agent]} when
-        the i-th Agent is offline.
-    \item If an Agent is offline during the upload, the
+        the i-th agent is offline.
+    \item If an agent is offline during the upload, the
         \texttt{roots[<some\_folder>]} value is still computed using the
-        current status of every Agent.
+        current status of every agent.
 \end{itemize}
 
 \end{frame}
@@ -215,29 +211,20 @@ This map allows us to:
     \umlobject[no ddots, x=9, fill=gray!20, draw=gray]{Agent 2}
     \umlobject[no ddots, x=14]{Agent 3}
 
-    \only<2->{
-        \begin{umlcall}[op=(1a) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}]{Agent 1}{Agent 1}
-        \end{umlcall}
-    }
+    \begin{umlcall}[op=(1a) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}]{Agent 1}{Agent 1}
+    \end{umlcall}
 
-    \only<3->{
-        \begin{umlcall}[op=(1b) Get root hash for Agent 2's \texttt{ff}, dt=10, return=\texttt{agent\_roots["ff"][2]}]{Agent 1}{Agent 1}
-        \end{umlcall}
-    }
+    \begin{umlcall}[op=(1b) Get root hash for Agent 2's \texttt{ff}, dt=10, return=\texttt{agent\_roots["ff"][2]}]{Agent 1}{Agent 1}
+    \end{umlcall}
 
-    \only<4->{
-        \begin{umlcall}[op=(1c) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}]{Agent 1}{Agent 3}
-        \end{umlcall}
-    }
+    \begin{umlcall}[op=(1c) Get root hash for \texttt{ff}, dt=10, return=Root hash for \texttt{ff}]{Agent 1}{Agent 3}
+    \end{umlcall}
 
-    \only<5->{
-        \begin{umlcall}[op=(2a) Raft log with corruption status for \texttt{ff},
-            fill=gray!10, dt=10]{Agent 1}{Agent 2}
-        \end{umlcall}
-        \begin{umlcall}[op=(2b) Raft log with corruption status for \texttt{ff}, fill=red, dt=10]{Agent 1}{Agent 3}
-        \end{umlcall}
-    }
-
+    \begin{umlcall}[op=(2a) Raft log with corruption status for \texttt{ff},
+        fill=gray!10, dt=10]{Agent 1}{Agent 2}
+    \end{umlcall}
+    \begin{umlcall}[op=(2b) Raft log with corruption status for \texttt{ff}, fill=red, dt=10]{Agent 1}{Agent 3}
+    \end{umlcall}
 \end{umlseqdiag}
 \end{tikzpicture}
 \end{figure}

@@ -1,5 +1,5 @@
 \begin{frame}{Problem}
-Given a filesystem, how can I be sure that every file keeps integrity?
+How can we verify that none of the files are corrupted?
 
 \begin{center}
     \begin{tikzpicture}
@@ -21,18 +21,15 @@ Given a filesystem, how can I be sure that every file keeps integrity?
     \end{tikzpicture}
 \end{center}
 
-\only<2>{We could use a checksum system to find out that the bordered file is
-corrupted.}
+\only<2>{We can use checksums.}
 
 \end{frame}
 
 \begin{frame}{Problem}
     \begin{columns}[c]
         \begin{column}{0.4\textwidth}
-            But, if we have more than one filesystem distributed across
-            different regions?
-            \only<2->{We should make a checksum check for each node.}
-            \only<3>{\textcolor{red}{\textbf{Too complex.}}}
+            But, what if we have a file split in pieces and distributed across different regions?
+            \only{We would need to perform a checksum on each node.}
         \end{column}
         \begin{column}{0.6\textwidth}
 
@@ -45,12 +42,7 @@ corrupted.}
                 \draw[thick] (0,4) rectangle (6,7);
                 \node[anchor=north west] at (0,7) {\textbf{Italy}};
                 \node[circle, draw, thick, minimum size=1.5cm] at (1,5.5) {node1};
-                \only<1>{
-                    \node[circle, draw, thick, minimum size=1.5cm] at (3,5.5) {node2};
-                }
-                \only<2->{
-                    \node[circle, draw, red, densely dotted, thick, minimum size=1.5cm] at (3,5.5) {node2};
-                }
+                \node[circle, draw, red, thick, minimum size=1.5cm] at (3,5.5) {node2};
                 \node[circle, draw, thick, minimum size=1.5cm] at (5,5.5) {node3};
             \end{tikzpicture}
         \end{column}

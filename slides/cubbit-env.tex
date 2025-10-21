@@ -9,9 +9,8 @@ Cubbit, a geo-distributed storage system.\\
 \begin{frame}{Cubbit -- How it works}
     \begin{columns}[c]
         \begin{column}{0.4\textwidth}
-            A file is split in $n+k$ shards. \\ We need at least $n$ shards to reconstruct the
-            entire file, $k$ shards are used as redundancy.
-
+            Each file is split in $n+k$ shards (i.e., pieces). \\ At least $n$ shards are
+            required to reconstruct the file, while $k$ shards provide redundancy.
         \end{column}
         \begin{column}{0.6\textwidth}
 
@@ -35,7 +34,7 @@ Cubbit, a geo-distributed storage system.\\
     \begin{columns}[c]
         \begin{column}{0.4\textwidth}
             \begin{enumerate}
-                \item<1-> If nodes are offline, can't check all shards for a file.
+                \item<1-> If nodes are offline, it becomes impossible to check all shards for a file.
                 \item<2-> During an upload some agents can be offline, but they
                 could be online during the check.
                 \item<3-> Check for each reconstructed file or for each shard?
@@ -56,7 +55,7 @@ Cubbit, a geo-distributed storage system.\\
                 \node[circle, draw, thick, minimum size=1.5cm] at (1,5.5) {shard1};
                 \only<1>{\node[circle, draw, thick, minimum size=1.5cm] at (3,5.5) {shard2};}
                 \only<2->{\node[circle, draw, thick, minimum size=1.5cm] at
-                (3,5.5) {\textcolor{red}{n/a}};}
+                (3,5.5) {n/a};}
                 \node[circle, draw, dotted, minimum size=1.5cm] at (5,5.5) {shard3};
             \end{tikzpicture}
         \end{column}
