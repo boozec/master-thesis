@@ -1,4 +1,4 @@
-\begin{frame}{Upload flow \only<2->{-- Directory tree}}
+\begin{frame}{Upload flow}
     Let's save our Christmas holidays family picture on Cubbit.
     \begin{itemize}
         \item Select a file. (e.g., xmas2024.png)
@@ -7,7 +7,6 @@
         \item Finally, every agent saves the file using a two-level folder structure. (e.g. ff/4c/4b3.1 for Agent 1)
     \end{itemize}
 
-    \only<2->{
         \begin{figure}[h]
         \centering
         \begin{tikzpicture}[
@@ -36,84 +35,10 @@
             };
         \end{tikzpicture}
         \end{figure}
-    }
 \end{frame}
 
-\begin{frame}{Directory trees as Merkle forest}
-
-\begin{figure}
-\begin{tikzpicture}[
-  every node/.style={font=\sffamily\footnotesize, draw, rectangle, minimum size=5mm, align=center},
-  greenborder/.style={draw=green!90!black, thick},
-  greenborder2/.style={draw=green!50!black, thick},
-  blueborder/.style={draw=cyan!90!black, thick},
-  blueborder2/.style={draw=cyan!50!black, thick},
-  yellowborder/.style={draw=orange!90!black, thick},
-  yellowborder2/.style={draw=orange!50!black, thick},
-  level 1/.style={sibling distance=27mm, level distance=5mm},
-  level 2/.style={sibling distance=17mm, level distance=7mm},
-  level 3/.style={sibling distance=12mm, level distance=7mm},
-  -, >=stealth
-]
-
-\node (root1) {Agent 1}
-  child {node[greenborder] {fe}
-    child {node[greenborder2] {fe/2d}
-      child {node {0f8.1}}
-    }
-  }
-  child {node[greenborder] {ff}
-    child {node[greenborder2] {ff/4c}
-      child {node {4b3.1}}
-      child {node {61a.1}}
-    }
-    child {node[greenborder2] {ff/6d}
-      child {node {db7.1}}
-    }
-  };
-
-\node[right=4cm of root1] (root2) {Agent 2}
-  child {node[blueborder] {fe}
-    child {node[blueborder2] {fe/2d}
-      child {node {0f8.2}}
-    }
-  }
-  child {node[blueborder] {ff}
-    child {node[blueborder2] {ff/4c}
-      child {node {4b3.2}}
-      child {node {61a.2}}
-    }
-    child {node[blueborder2] {ff/6d}
-      child {node {db7.2}}
-    }
-  };
-
-\node (root3) at ($(root1) + (2.5cm,-3cm)$) {Agent 3}
-  child {node[yellowborder] {fe}
-    child {node[yellowborder2] {fe/2d}
-      child {node {0f8.3}}
-    }
-  }
-  child {node[yellowborder] {ff}
-    child {node[yellowborder2] {ff/4c}
-      child {node {4b3.3}}
-      child {node {61a.3}}
-    }
-    child {node[yellowborder2] {ff/6d}
-      child {node {db7.3}}
-    }
-  };
-
-\end{tikzpicture}
-\end{figure}
-
-Each agent sends the Merkle root hashes of their top- and second-level folders to the agent leader.
-
-\end{frame}
 
 \begin{frame}{Aggregated roots}
-
-
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
@@ -164,9 +89,9 @@ The leader builds Merkle trees for each folder, with the agents' Merkle
                    stringstyle=\color{teal},
                    showstringspaces=false]
 roots = {
-    "fe":   "new root hash of fe",
-    "ff":   "new root hash of ff",
-    "ff/4c":"new root hash of ff/4c",
+    "fe":   "root hash of fe",
+    "ff":   "root hash of ff",
+    "ff/4c":"root hash of ff/4c",
     # ...
 }
 

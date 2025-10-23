@@ -6,9 +6,9 @@
                    stringstyle=\color{teal},
                    showstringspaces=false]
 roots = {
-    "fe":   "new root hash of fe",
-    "ff":   "new root hash of ff",
-    "ff/4c":"new root hash of ff/4c",
+    "fe":   "root hash of fe",
+    "ff":   "root hash of ff",
+    "ff/4c":"root hash of ff/4c",
     # ...
 }
 
