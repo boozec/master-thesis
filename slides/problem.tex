@@ -11,17 +11,15 @@ How can we verify that none of the files are corrupted?
         % Calculate the width and height of the image node for later use
         \pgfgetlastxy{\imagewidth}{\imageheight}
 
-        \only<2>{
-            \coordinate (A) at ([xshift=.7cm, yshift=2.1cm]image.south west);
-            \coordinate (B) at ([xshift=7.9cm, yshift=2.4cm]image.south west);
+        \coordinate (A) at ([xshift=.7cm, yshift=2.1cm]image.south west);
+        \coordinate (B) at ([xshift=7.9cm, yshift=2.4cm]image.south west);
 
-            \draw[red, very thick, line width=1pt]
-                (A) rectangle (B);
-        }
+        \draw[red, very thick, line width=1pt]
+            (A) rectangle (B);
     \end{tikzpicture}
 \end{center}
 
-\only<2>{We can use checksums.}
+We can use checksums.
 
 \end{frame}
 

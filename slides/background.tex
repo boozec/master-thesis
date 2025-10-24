@@ -1,19 +1,12 @@
-\begin{frame}{Merkle trees \only<2->{-- Proof}}
+\begin{frame}{Merkle trees}
     \begin{columns}[c]
         \begin{column}{0.5\textwidth}
-            \only<1>{It is a binary tree $T$ of height $H$ with $2^H$ leaves and
+            It is a binary tree $T$ of height $H$ with $2^H$ leaves and
             $2^{H} - 1$ internal
 nodes. Each leaf stores the cryptographic hash of the underlying data, rather than
 the raw data itself. The same cryptographic hash function is applied recursively at
 internal nodes, which store the hash of the concatenation of their two children.
-            $$n_{parent} = f(n_{left} || n_{right})$$}
-\only<2>{
-Merkle trees has the ability to prove that a
-given piece of data is part of a larger set, without revealing or recomputing the
-            entire dataset. For $data_1$ we have $\pi=\{node_0, node_{23}\}$.\\
-We can make a proof verification
-            comparing the result with the presumed root in $O(\log n)$.
-            }
+            $$n_{parent} = f(n_{left} || n_{right})$$
         \end{column}
         \begin{column}{0.5\textwidth}
             \centering
@@ -29,20 +22,17 @@ We can make a proof verification
             ]
             % leaves
             \node[leaf,] (data0) {$data_0$};
-            \only<1>{\node[leaf, right=of data0] (data1) {$data_1$};}
-            \only<2->{\node[leaf, red, right=of data0] (data1) {$data_1$};}
+            \node[leaf, right=of data0] (data1) {$data_1$};
             \node[leaf, right=of data1] (data2) {$data_2$};
             \node[leaf, right=of data2] (data3) {$data_3$};
             % leaf-hash nodes with two lines (inline math for each line)
-            \only<1>{\node[hash, above=0.2cm of data0] (n0) {\(\mathbf{node_0}\)\\ \(f(data_0)\)};}
-            \only<2->{\node[hash, red, above=0.2cm of data0] (n0) {\(\mathbf{node_0}\)\\ \(f(data_0)\)};}
+            \node[hash, above=0.2cm of data0] (n0) {\(\mathbf{node_0}\)\\ \(f(data_0)\)};
             \node[hash, above=0.2cm of data1] (n1) {\(\mathbf{node_1}\)\\ \(f(data_1)\)};
             \node[hash, above=0.2cm of data2] (n2) {\(\mathbf{node_2}\)\\ \(f(data_2)\)};
             \node[hash, above=0.2cm of data3] (n3) {\(\mathbf{node_3}\)\\ \(f(data_3)\)};
             % parents
             \node[hash, above=of $(n0)!0.5!(n1)$] (p01) {\(\mathbf{node_{01}}\)\\ \(f(node_0\Vert node_1)\)};
-            \only<1>{\node[hash, above=of $(n2)!0.5!(n3)$] (p23) {\(\mathbf{node_{23}}\)\\ \(f(node_2\Vert node_3)\)};}
-            \only<2->{\node[hash, red, above=of $(n2)!0.5!(n3)$] (p23) {\(\mathbf{node_{23}}\)\\ \(f(node_2\Vert node_3)\)};}
+            \node[hash, above=of $(n2)!0.5!(n3)$] (p23) {\(\mathbf{node_{23}}\)\\ \(f(node_2\Vert node_3)\)};
             % root
             \node[hash, above=of $(p01)!0.5!(p23)$] (root) {\(\textbf{root}\)\\ \(f(node_{01}\Vert node_{23})\)};
             % edges with arrows

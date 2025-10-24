@@ -111,19 +111,6 @@ agent_roots = {
 \end{lstlisting}
 \end{frame}
 
-\begin{frame}{Map of hashes}
-
-This map allows us to:
-\begin{itemize}
-    \item Use \texttt{agent\_roots[<some\_folder>][i-th-agent]} when
-        the i-th agent is offline.
-    \item If an agent is offline during the upload, the
-        \texttt{roots[<some\_folder>]} value is still computed using the
-        current status of every agent.
-\end{itemize}
-
-\end{frame}
-
 \begin{frame}{Check corruptions}
 
 \begin{figure}
