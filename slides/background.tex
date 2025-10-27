@@ -3,7 +3,7 @@
         \begin{column}{0.5\textwidth}
             It is a binary tree $T$ of height $H$ with $2^H$ leaves and
             $2^{H} - 1$ internal
-nodes. Each leaf stores the cryptographic hash of the underlying data, rather than
+nodes. Each leaf stores the \textbf{cryptographic hash} of the underlying data, rather than
 the raw data itself. The same cryptographic hash function is applied recursively at
 internal nodes, which store the hash of the concatenation of their two children.
             $$n_{parent} = f(n_{left} || n_{right})$$
@@ -70,8 +70,7 @@ internal nodes, which store the hash of the concatenation of their two children.
 \end{frame}
 
 \begin{frame}{Raft}
-A consensus protocol, where each server on a cluster is a follower, a candidate
-or a leader. There is a single leader, responsible for sending messages to other servers via the Raft log.
+A consensus protocol, where each server on a cluster is a follower, a candidate or a leader. There is a single \textbf{leader}, responsible for sending messages to other servers via the Raft \textbf{log}.
 
 \centering
 \includegraphics[width=.4\linewidth]{static/raft-logo.png}

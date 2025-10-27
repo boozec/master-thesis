@@ -9,8 +9,8 @@ Cubbit, a geo-distributed storage system.\\
 \begin{frame}{Cubbit -- How it works}
     \begin{columns}[c]
         \begin{column}{0.4\textwidth}
-            Each file is split into $n+k$ shards (i.e., pieces) using
-            Reed-Solomon. Each shard is sent to a different node (i.e., agent). \\ At least $n$ shards are
+            Each file is split into $n+k$ pieces (i.e., \textbf{shards}) using
+            Reed-Solomon. Each shard is sent to a different node (i.e., \textbf{agent}). \\ At least $n$ shards are
             required to reconstruct the file, while $k$ shards provide redundancy.
         \end{column}
         \begin{column}{0.6\textwidth}
@@ -36,7 +36,7 @@ Cubbit, a geo-distributed storage system.\\
         \begin{column}{0.4\textwidth}
             \begin{enumerate}
                 \item<1-> If nodes are offline, it becomes impossible to check all shards for a file.
-                \item<2-> During upload, some nodes may be offline, but they might be online during verification.
+                \item<2-> During upload, some \textbf{nodes may be offline}, but they might be online during verification.
                 \item<3-> Should we check each reconstructed file or each shard individually?
             \end{enumerate}
 

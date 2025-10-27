@@ -3,7 +3,18 @@
 \usecolortheme{beaver}
 \beamertemplatenavigationsymbolsempty
 \makeatletter
-\setbeamertemplate{footline}{}
+
+\setbeamertemplate{footline}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.9\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.1\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \insertframenumber{} / 19
+  \end{beamercolorbox}}%
+  \vskip0pt%
+}
 \makeatother
 
 \definecolor{unibored}{RGB}{187,46,41}
@@ -50,7 +61,13 @@ systems}
 \usepgfplotslibrary{groupplots}
 
 \begin{document}
+
+{
+\setbeamertemplate{footline}{} 
 \frame{\titlepage}
+}
+
+\addtocounter{framenumber}{-1}
 
 % \input{content}
 \input{problem}
